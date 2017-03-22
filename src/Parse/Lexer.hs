@@ -11,6 +11,7 @@ import qualified Text.Megaparsec       as P
 import qualified Text.Megaparsec.Lexer as L
 
 import           Parse.Parse
+import qualified Syntax                as Ch
 
 
 reservedWords :: [String]
@@ -115,3 +116,8 @@ resetIndent = put emptyParserState
 
 indented :: Parser ()
 indented = void $ get >>= L.indentGuard scn GT . indentLevel
+
+
+pos :: Parser Ch.Pos
+pos = P.getPosition >>= \(P.SourcePos sf sline scol) ->
+  return $ Ch.Pos sf (fromIntegral $ P.unPos sline) (fromIntegral $ P.unPos scol)

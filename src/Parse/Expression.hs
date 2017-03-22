@@ -12,6 +12,7 @@ expr :: Parser Ch.Expr
 expr = try app
    <|> try term
 
+
 term :: Parser Ch.Expr
 term = try $ L.parens expr
    <|> try lit
@@ -19,18 +20,19 @@ term = try $ L.parens expr
 
 
 var :: Parser Ch.Expr
-var = Ch.Var <$> L.ident
+var = (Ch.Var <$> L.pos) <*> L.ident
 
 
 app :: Parser Ch.Expr
 app = do
+  pos  <- L.pos
   func <- term
   args <- term
-  return $ Ch.App func [args]
+  return $ Ch.App pos func [args]
 
 
 lit :: Parser Ch.Expr
-lit = Ch.Lit <$>
+lit = Ch.Lit <$> L.pos <*>
      (try string
   <|> try bool
   <|> try float

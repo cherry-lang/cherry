@@ -8,6 +8,15 @@ type Runs   = String
 type FuncId = (String, Int)
 
 
+data Pos
+  = Pos
+  { srcFile :: FilePath
+  , srcLine :: Int
+  , srcCol  :: Int
+  }
+  deriving (Show)
+
+
 data Module
   = Module Name [Export] [Runs] [Declaration]
   deriving (Show)
@@ -21,17 +30,17 @@ data ImportAssign
 
 
 data Declaration
-  = Func FuncId [Param] [Expr]
-  | Const Name Expr
-  | Import Name [ImportAssign]
-  | ImportJs Name [ImportAssign]
+  = Func Pos FuncId [Param] [Expr]
+  | Const Pos Name Expr
+  | Import Pos Name [ImportAssign]
+  | ImportJs Pos Name [ImportAssign]
   deriving (Show)
 
 
 data Expr
-  = Var Name
-  | Lit Lit
-  | App Expr [Expr]
+  = Var Pos Name
+  | Lit Pos Lit
+  | App Pos Expr [Expr]
   | Lambda [Param] Expr
   | Arith Op Expr Expr
   deriving (Show)
