@@ -40,7 +40,7 @@ data Declaration
 data Expr
   = Var Pos Name
   | Lit Pos Lit
-  | App Pos Expr [Expr]
+  | App Pos Expr Expr
   | Lambda [Param] Expr
   | Arith Op Expr Expr
   deriving (Show)

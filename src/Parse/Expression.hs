@@ -28,7 +28,7 @@ app = do
   pos  <- L.pos
   func <- term
   args <- term
-  return $ Ch.App pos func [args]
+  return $ Ch.App pos func args
 
 
 lit :: Parser Ch.Expr

@@ -1,6 +1,5 @@
 module Test
 
-main =
-    (greet "asdf") (greet "Gunnar")
+main = greet 1 2
 
 greet name = name
