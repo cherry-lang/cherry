@@ -1,6 +1,10 @@
 module Test
 
 main =
-    asdf
+    True
+    False
+    1
+    1.2
 
 
+greet name = name

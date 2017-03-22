@@ -15,23 +15,23 @@ import           Parse.Parse
 
 reservedWords :: [String]
 reservedWords =
-    [ "from"
-    , "fromjs"
-    , "import"
-    , "default"
-    , "as"
-    , "class"
-    , "extends"
-    , "module"
-    , "exports"
-    , "runs"
-    , "const"
-    , "where"
-    , "True"
-    , "False"
-    , "null"
-    , "undefined"
-    ]
+  [ "from"
+  , "fromjs"
+  , "import"
+  , "default"
+  , "as"
+  , "class"
+  , "extends"
+  , "module"
+  , "exports"
+  , "runs"
+  , "const"
+  , "where"
+  , "True"
+  , "False"
+  , "null"
+  , "undefined"
+  ]
 
 
 
@@ -62,11 +62,11 @@ dotIdent = identWith ['_', '.']
 identWith :: [Char] -> Parser String
 identWith chars = lexeme (p >>= check)
   where
-    p = (:) <$> P.letterChar <*> P.many (foldl (\acc ch -> acc <|> P.char ch) P.alphaNumChar chars)
-    check x =
-        if x `elem` reservedWords
-            then fail $ "Keyword " ++ show x ++ " is reserved."
-            else return x
+  p = (:) <$> P.letterChar <*> P.many (foldl (\acc ch -> acc <|> P.char ch) P.alphaNumChar chars)
+  check x =
+    if x `elem` reservedWords
+      then fail $ "Keyword " ++ show x ++ " is reserved."
+      else return x
 
 
 sym :: String -> Parser String
@@ -91,6 +91,10 @@ brackets = P.between (sym "[") (sym "]")
 
 braces :: Parser a -> Parser a
 braces = P.between (sym "{") (sym "}")
+
+
+doubleQuotes :: Parser a -> Parser a
+doubleQuotes = P.between (sym "\"") (sym "\"")
 
 
 comma :: Parser ()

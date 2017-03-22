@@ -51,5 +51,6 @@ data Lit
   = Bool Bool
   | String String
   | Int Int
-  | Float Float
+  | Float Double
+  | Void
   deriving (Show)
