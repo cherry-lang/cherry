@@ -1,0 +1,6 @@
+module Test
+
+main =
+    asdf
+
+

@@ -1,5 +1,9 @@
 module Main where
 
+import System.Environment
+
+import Parse
+
+
 main :: IO ()
-main = do
-  putStrLn "hello world"
+main = getArgs >>= readFile . head >>= print . parse ""
