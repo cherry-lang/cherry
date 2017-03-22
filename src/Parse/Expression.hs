@@ -9,7 +9,11 @@ import qualified Syntax            as Ch
 
 
 expr :: Parser Ch.Expr
-expr = try $ L.parens expr
+expr = try app
+   <|> try term
+
+term :: Parser Ch.Expr
+term = try $ L.parens expr
    <|> try lit
    <|> try var
 
@@ -20,8 +24,8 @@ var = Ch.Var <$> L.ident
 
 app :: Parser Ch.Expr
 app = do
-  func <- expr
-  args <- expr
+  func <- term
+  args <- term
   return $ Ch.App func [args]
 
 
