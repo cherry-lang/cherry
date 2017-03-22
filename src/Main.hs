@@ -7,7 +7,7 @@ import Codegen.Javascript.Codegen (codegen)
 
 
 main :: IO ()
-main = getArgs >>= readFile . head >>= print . gen
+main = getArgs >>= readFile . head >>= putStr . gen
 
 
 gen :: String -> String
