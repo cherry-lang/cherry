@@ -27,8 +27,8 @@ app :: Parser Ch.Expr
 app = do
   pos  <- L.pos
   func <- term
-  args <- term
-  return $ Ch.App pos func args
+  args <- P.some term
+  return $ foldl (\app arg -> Ch.App pos app arg) func args
 
 
 lit :: Parser Ch.Expr

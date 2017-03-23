@@ -4,6 +4,7 @@ import System.Environment
 
 import Parse
 import Codegen.Javascript.Codegen (codegen)
+import Codegen.Javascript.Pretty (prettyPrint)
 
 
 main :: IO ()
@@ -14,4 +15,4 @@ gen :: String -> String
 gen ctn =
   case parse "" ctn of
     Left err -> show err
-    Right ast -> (show . codegen) ast
+    Right ast -> (prettyPrint . codegen) ast

@@ -21,4 +21,5 @@ executable cherry
                        megaparsec >= 5.2.0,
                        containers >= 0.5.7,
                        text >= 1.2.2,
-                       mtl >= 2.2.1
+                       mtl >= 2.2.1,
+                       pretty >= 1.1.3
