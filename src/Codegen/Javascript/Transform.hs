@@ -1,30 +1,16 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
-{-# LANGUAGE NamedFieldPuns             #-}
 
-module Codegen.Javascript.Codegen where
-
-import           Control.Monad.State
-import           Data.Map                  ((!))
-import qualified Data.Map                  as Map
-import qualified Data.Set                  as Set
+module Codegen.Javascript.Transform where
 
 import qualified Codegen.Javascript.Syntax as Js
 import qualified Syntax                    as Ch
-import           Utils
 
 
 codegen :: Ch.Module -> Js.Module
 codegen = transform
 
 
--- TYPES
-
-
 type Name = String
-
-
--- TRANSFORM
 
 
 traverseApp :: Ch.Expr -> [Ch.Expr]

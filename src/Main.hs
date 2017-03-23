@@ -1,10 +1,10 @@
 module Main where
 
-import System.Environment
+import           System.Environment
 
-import Parse
-import Codegen.Javascript.Codegen (codegen)
-import Codegen.Javascript.Pretty (prettyPrint)
+import           Codegen.Javascript        (codegen)
+import           Codegen.Javascript.Pretty (prettyPrint)
+import           Parse
 
 
 main :: IO ()
