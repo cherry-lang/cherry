@@ -1,9 +1,11 @@
-module Test
+module Test runs (main)
 
-greet x y z = 123
 
-main = greet 1 2
+greet name =
+  name
 
-greet name = name
 
-greet fname lname = fname
+main =
+  greet "Hello"
+
+
