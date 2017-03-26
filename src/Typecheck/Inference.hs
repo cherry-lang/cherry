@@ -57,16 +57,16 @@ inEnv (name, scheme) m = do
   local scope m
 
 
-lookupEnv :: String -> Infer T.Type
+lookupEnv :: String -> Infer (Maybe T.Type)
 lookupEnv name = do
   (Environment vars _) <- ask
 
   case Map.lookup name vars of
     Nothing ->
-      throwError $ UnboundVariable name
+      return Nothing
 
     Just scheme -> do
-      instantiate scheme >>= return
+      instantiate scheme >>= return . Just
 
 
 instantiate :: T.Scheme -> Infer T.Type
@@ -124,27 +124,44 @@ topDecls :: [Ch.Declaration] -> Infer T.Type
 topDecls [] = return $ T.var ""
 topDecls (d:ds) =
   case d of
+    Ch.TypeAnn _ (name, _) type' -> do
+      env <- ask
+      inEnv (name, generalize env type') $ topDecls ds
+
     Ch.Func _ (name, _) params exprs -> do
       let rest  = init exprs
       let last' = last exprs
 
+      env   <- ask
       type' <- param params $ do
         mapM_ expr rest
-        expr last' >>= return
+        t <- expr last'
+        return t
 
-      inEnv (name, T.Forall [] type') $ topDecls ds
+      def <- lookupEnv name
+      case def of
+        Nothing ->
+          inEnv (name, generalize env type') $ topDecls ds
+
+        Just t ->
+          uni t type' >> topDecls ds
 
 
 param :: [String] -> Infer T.Type -> Infer T.Type
 param [] m     = m
-param (p:[]) m = fresh >>= \tv -> inEnv (p, T.Forall [] tv) m
-param (p:ps) m = fresh >>= \tv -> inEnv (p, T.Forall [] tv) $ param ps m
+param (p:ps) m = fresh >>= \tv -> inEnv (p, T.Forall [] tv) $ do
+  t <- param ps m
+  return $ T.Arrow tv t
+
 
 expr :: Ch.Expr -> Infer T.Type
 expr e =
   case e of
-    Ch.Var _ var ->
-      lookupEnv var
+    Ch.Var _ var -> do
+      mt <- lookupEnv var
+      case mt of
+        Just t  -> return t
+        Nothing -> throwError $ UnboundVariable var
 
     Ch.Lit _ lit' ->
       lit lit'

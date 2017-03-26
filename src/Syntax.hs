@@ -1,5 +1,7 @@
 module Syntax where
 
+import qualified Type as T
+
 
 type Name   = String
 type Param  = String
@@ -31,6 +33,7 @@ data ImportAssign
 
 data Declaration
   = Func Pos FuncId [Param] [Expr]
+  | TypeAnn Pos FuncId T.Type
   | Const Pos Name Expr
   | Import Pos Name [ImportAssign]
   | ImportJs Pos Name [ImportAssign]

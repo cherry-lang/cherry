@@ -17,7 +17,7 @@ import           Typecheck.Error
 
 newtype Subst
   = Subst (Map.Map T.Var T.Type)
-  deriving (Monoid)
+  deriving (Show, Monoid)
 
 
 type Unifier = (Subst, [Constraint])
@@ -78,7 +78,7 @@ solve cs = runIdentity $ runExceptT $ solver st
 
 
 compose :: Subst -> Subst -> Subst
-(Subst s1) `compose` (Subst s2) = Subst $ Map.map (apply (Subst s1)) s2 `Map.union` s2
+(Subst s1) `compose` (Subst s2) = Subst $ Map.map (apply (Subst s1)) s2 `Map.union` s1
 
 
 solver :: Unifier -> Solve Subst
@@ -93,20 +93,37 @@ solver (sub, cs) =
 
 
 unifyMany :: [T.Type] -> [T.Type] -> Solve Subst
-unifyMany [] [] = return emptySubst
-unifyMany (h1:t1) (h2:t2) = do
-  sub1 <- unifies h1 h2
-  sub2 <- unifyMany (apply sub1 t1) (apply sub1 t2)
-  return (sub2 `compose` sub1)
-unifyMany t1 t2 = throwError $ UnificationMismatch t1 t2
+unifyMany ts ts' =
+  case (ts, ts') of
+    ([], []) ->
+      return emptySubst
+
+    (h1:t1, h2:t2) -> do
+      sub1 <- unifies h1 h2
+      sub2 <- unifyMany (apply sub1 t1) (apply sub1 t2)
+      return (sub2 `compose` sub1)
+
+    _ ->
+      throwError $ UnificationMismatch ts ts'
 
 
 unifies :: T.Type -> T.Type -> Solve Subst
-unifies t1 t2 | t1 == t2                = return emptySubst
-unifies (T.Var var) type'               = var `bind` type'
-unifies type' (T.Var var)               = var `bind` type'
-unifies (T.Arrow t1 t2) (T.Arrow t3 t4) = unifyMany [t1, t2] [t3, t4]
-unifies t1 t2                           = throwError $ TypeMismatch t1 t2
+unifies t t' =
+  case (t, t') of
+    (t1, t2) | t1 == t2 ->
+      return emptySubst
+
+    (T.Var var, type') ->
+      var `bind` type'
+
+    (type', T.Var var) ->
+      var `bind` type'
+
+    (T.Arrow t1 t2, T.Arrow t3 t4) ->
+      unifyMany [t1, t2] [t3, t4]
+
+    _ ->
+      throwError $ TypeMismatch t t'
 
 
 bind :: T.Var -> T.Type -> Solve Subst

@@ -102,6 +102,18 @@ comma :: Parser ()
 comma = void $ sym ","
 
 
+colon :: Parser ()
+colon = void $ sym ":"
+
+
+arrowr :: Parser ()
+arrowr = void $ sym "->"
+
+
+arrowl :: Parser ()
+arrowl = void $ sym "<-"
+
+
 equals :: Parser ()
 equals = void $ sym "="
 

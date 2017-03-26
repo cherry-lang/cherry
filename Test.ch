@@ -1,11 +1,10 @@
 module Test runs (main)
 
 
-greet name =
+greet : String -> Int -> String
+greet name asdf =
   name
 
 
-main =
-  greet "Hello"
 
-
+main = greet "Gunnar" 123
