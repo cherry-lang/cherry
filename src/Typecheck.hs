@@ -1,10 +1,10 @@
 module Typecheck where
 
-import qualified Syntax              as Ch
-import           Typecheck.Error
-import           Typecheck.Inference (infer)
-import           Typecheck.Solve (solve)
+import qualified Syntax                as Ch
 import           Typecheck.Environment (emptyEnv)
+import           Typecheck.Error
+import           Typecheck.Infer       (infer)
+import           Typecheck.Solve       (solve)
 
 
 typecheck :: Ch.Module -> Either String Ch.Module

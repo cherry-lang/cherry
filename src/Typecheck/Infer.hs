@@ -1,4 +1,4 @@
-module Typecheck.Inference where
+module Typecheck.Infer where
 
 import           Control.Monad.Except
 import           Control.Monad.RWS
