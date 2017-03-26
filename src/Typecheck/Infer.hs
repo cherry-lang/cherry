@@ -59,9 +59,9 @@ inEnv (name, scheme) m = do
 
 lookupEnv :: String -> Infer (Maybe T.Type)
 lookupEnv name = do
-  (Environment vars _) <- ask
+  (Environment vars' _) <- ask
 
-  case Map.lookup name vars of
+  case Map.lookup name vars' of
     Nothing ->
       return Nothing
 

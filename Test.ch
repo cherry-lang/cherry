@@ -7,4 +7,4 @@ greet name asdf =
 
 
 
-main = greet "Gunnar" 123
+main = greet "Hello" 123
