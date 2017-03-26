@@ -5,6 +5,6 @@ greet : String -> Int -> String
 greet name asdf =
   name
 
+console : { log : String -> String, m : { id : Int -> Int, mount : Bool -> Bool } }
 
-
-main = greet "Hello" 123
+main = console.m.mount 123.012 

@@ -5,6 +5,7 @@ module Parse.Lexer where
 import           Control.Applicative   (empty)
 import           Control.Monad         (void)
 import           Control.Monad.State
+import           Data.List.Split
 
 import           Text.Megaparsec       ((<|>))
 import qualified Text.Megaparsec       as P
@@ -61,13 +62,23 @@ dotIdent = identWith ['_', '.']
 
 
 identWith :: [Char] -> Parser String
-identWith chars = lexeme (p >>= check)
+identWith chars = lexeme (p >>= checkReserved)
   where
   p = (:) <$> P.letterChar <*> P.many (foldl (\acc ch -> acc <|> P.char ch) P.alphaNumChar chars)
-  check x =
-    if x `elem` reservedWords
-      then fail $ "Keyword " ++ show x ++ " is reserved."
-      else return x
+
+
+prop :: Parser [String]
+prop = lexeme $ do
+  p  <- P.some $ P.try (ident <* P.char '.')
+  p' <- ident
+  return $ p ++ [p']
+
+
+checkReserved :: String -> Parser String
+checkReserved x =
+  if x `elem` reservedWords
+    then fail $ "Keyword " ++ show x ++ " is reserved."
+    else return x
 
 
 sym :: String -> Parser String

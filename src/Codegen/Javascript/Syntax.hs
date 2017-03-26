@@ -17,6 +17,7 @@ data Statement
   | Return Expr
   | Export Name
   | If [(Expr, [Statement])]
+  | Skip
   deriving (Show)
 
 
@@ -38,4 +39,5 @@ data Lit
   = String String
   | Bool Bool
   | Number Double
+  | Void
   deriving (Show)

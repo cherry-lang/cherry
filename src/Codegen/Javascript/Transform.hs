@@ -24,7 +24,9 @@ class Transform a b where
 
 instance Transform Ch.Module Js.Module where
   transform (Ch.Module _ exports runs decls) =
-     Js.Module $ map transform decls
+     Js.Module $
+       map transform decls
+       ++ map (Js.Expr . transform) runs
 
 
 instance Transform Ch.Declaration Js.Statement where
@@ -36,6 +38,9 @@ instance Transform Ch.Declaration Js.Statement where
                        [Js.Return $ transform $ head exprs]
         in
           Js.Func name params statements
+
+      Ch.TypeAnn _ _ _ ->
+        Js.Skip
 
 
 instance Transform Ch.Expr Js.Expr where
@@ -73,4 +78,4 @@ instance Transform Ch.Lit Js.Lit where
         Js.Number float
 
       Ch.Void ->
-        undefined
+        Js.Void

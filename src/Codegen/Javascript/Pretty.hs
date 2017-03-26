@@ -6,7 +6,7 @@ import           Control.Monad.State
 import           Data.List
 import           Text.PrettyPrint
 
-import qualified Codegen.Javascript.Syntax as JS
+import qualified Codegen.Javascript.Syntax as Js
 
 
 data PrinterState
@@ -49,7 +49,7 @@ execPrinter :: Printer a -> Doc
 execPrinter m = doc $ execState (runPrinter m) emptyPrinterState
 
 
-prettyPrint :: JS.Module -> String
+prettyPrint :: Js.Module -> String
 prettyPrint mod' = render $ execPrinter $ pModule mod'
 
 
@@ -100,14 +100,14 @@ commaSpc = comma <> space
 ----------------------------------------------------------------
 
 
-pModule :: JS.Module -> Printer ()
-pModule (JS.Module sts) = do
+pModule :: Js.Module -> Printer ()
+pModule (Js.Module sts) = do
     mapM_ pStatement sts
 
 
-pStatement :: JS.Statement -> Printer ()
+pStatement :: Js.Statement -> Printer ()
 pStatement st = case st of
-    JS.Func name params sts -> do
+    Js.Func name params sts -> do
         appendN $ (func name params) <+> lbrace
         indent
         mapM_ pStatement sts
@@ -115,24 +115,27 @@ pStatement st = case st of
         appendN rbrace
         newline
 
-    JS.If cases -> do
+    Js.If cases -> do
         pIf cases
 
-    JS.Export name ->
+    Js.Export name ->
         appendN $ export name
 
-    JS.Return expr -> do
+    Js.Return expr -> do
         appendN $ return' <> space
         pExpr expr
         append semi
 
-    JS.Expr expr -> do
+    Js.Expr expr -> do
         newline
         pExpr expr
         append semi
 
+    Js.Skip ->
+      return ()
 
-pIf :: [(JS.Expr, [JS.Statement])] -> Printer ()
+
+pIf :: [(Js.Expr, [Js.Statement])] -> Printer ()
 pIf ifs = do
     let h = head ifs
     let t = tail ifs
@@ -150,41 +153,44 @@ pIf ifs = do
         appendN rbrace
 
 
-pExpr :: JS.Expr -> Printer ()
+pExpr :: Js.Expr -> Printer ()
 pExpr expr = case expr of
-    JS.Lit lit ->
+    Js.Lit lit ->
         pLit lit
 
-    JS.Var var ->
+    Js.Var var ->
         append $ text var
 
-    JS.App fn args -> do
+    Js.App fn args -> do
         append lparen
         pExpr fn
         append $ rparen <> lparen
         mapIntersperse_ (append commaSpc) pExpr args
         append rparen
 
-    JS.Lambda params sts -> do
+    Js.Lambda params sts -> do
         append $ func "" params <+> lbrace
         indent
         mapM_ pStatement sts
         dedent
         appendN rbrace
 
-    JS.Comp JS.Eq e1 e2 -> do
+    Js.Comp Js.Eq e1 e2 -> do
         pExpr e1
         append compareEq
         pExpr e2
 
 
-pLit :: JS.Lit -> Printer ()
+pLit :: Js.Lit -> Printer ()
 pLit lit = case lit of
-    JS.String str ->
+    Js.String str ->
         append $ quotes $ text str
 
-    JS.Bool bool ->
+    Js.Bool bool ->
         append $ text $ if bool then "true" else "false"
 
-    JS.Number num ->
+    Js.Number num ->
         append $ text $ show num
+
+    Js.Void ->
+      return ()

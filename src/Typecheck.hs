@@ -7,10 +7,10 @@ import           Typecheck.Infer       (infer)
 import           Typecheck.Solve       (solve)
 
 
-typecheck :: Ch.Module -> Either String Ch.Module
+typecheck :: Ch.Module -> Either Error Ch.Module
 typecheck m =
   case infer emptyEnv m of
-    Left err -> Left $ show err
+    Left err -> Left err
     Right s@(_, constraints) -> case solve constraints of
-      Left err -> Left $ show err
-      Right _  -> Left $ show constraints
+      Left err -> Left err
+      Right _  -> Right m

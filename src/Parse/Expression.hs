@@ -16,7 +16,15 @@ expr = try app
 term :: Parser Ch.Expr
 term = try $ L.parens expr
    <|> try lit
+   <|> try prop
    <|> try var
+
+
+prop :: Parser Ch.Expr
+prop = do
+  pos  <- L.pos
+  prop <- L.prop
+  return $ Ch.Prop pos prop
 
 
 var :: Parser Ch.Expr

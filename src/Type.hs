@@ -1,5 +1,7 @@
 module Type where
 
+import qualified Data.Map as Map
+
 
 newtype Var
   = TV String
@@ -10,6 +12,7 @@ data Type
   = Var Var
   | Con String
   | Arrow Type Type
+  | Record (Map.Map String Type)
   deriving (Show, Eq, Ord)
 
 

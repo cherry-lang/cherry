@@ -30,10 +30,12 @@ class Substitutable a where
 
 instance Substitutable T.Type where
   apply _ (T.Con type')             = T.Con type'
+  apply _ type'@T.Record{}          = type'
   apply (Subst s) type'@(T.Var var) = Map.findWithDefault type' var s
   apply subst (t1 `T.Arrow` t2)     = apply subst t1 `T.Arrow` apply subst t2
 
   ftv T.Con{}         = Set.empty
+  ftv T.Record{}      = Set.empty
   ftv (T.Var var)     = Set.singleton var
   ftv (T.Arrow t1 t2) = ftv t1 `Set.union` ftv t2
 
@@ -123,7 +125,7 @@ unifies t t' =
       unifyMany [t1, t2] [t3, t4]
 
     _ ->
-      throwError $ TypeMismatch t t'
+      throwError $ TypeMismatch t' t
 
 
 bind :: T.Var -> T.Type -> Solve Subst

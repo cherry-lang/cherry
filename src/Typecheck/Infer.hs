@@ -10,7 +10,7 @@ import qualified Syntax                as Ch
 import qualified Type                  as T
 import           Typecheck.Constraint
 import           Typecheck.Environment
-import           Typecheck.Error
+import    qualified       Typecheck.Error as Err
 import           Typecheck.Solve
 
 
@@ -23,7 +23,7 @@ type Infer a =
     Environment
     [Constraint]
     InferState
-    (Except Error)
+    (Except Err.Error)
     a
   )
 
@@ -108,16 +108,16 @@ generalize env type' = T.Forall as type'
 -- INFERENCE
 
 
-infer :: Environment -> Ch.Module -> Either Error (T.Type, [Constraint])
+infer :: Environment -> Ch.Module -> Either Err.Error (T.Type, [Constraint])
 infer env m = runInfer env $ module' m
 
 
-runInfer :: Environment -> Infer T.Type -> Either Error (T.Type, [Constraint])
+runInfer :: Environment -> Infer T.Type -> Either Err.Error (T.Type, [Constraint])
 runInfer env m = runExcept $ evalRWST m env emptyInfer
 
 
 module' :: Ch.Module -> Infer T.Type
-module' (Ch.Module _ _ _ decls) = topDecls decls
+module' (Ch.Module _ _ runs decls) = topDecls decls
 
 
 topDecls :: [Ch.Declaration] -> Infer T.Type
@@ -161,7 +161,13 @@ expr e =
       mt <- lookupEnv var
       case mt of
         Just t  -> return t
-        Nothing -> throwError $ UnboundVariable var
+        Nothing -> throwError $ Err.UnboundVariable var
+
+    Ch.Prop _ (var:ps) -> do
+      mt <- lookupEnv var
+      case mt of
+        Just t  -> record var ps t
+        Nothing -> throwError $ Err.UnboundVariable var
 
     Ch.Lit _ lit' ->
       lit lit'
@@ -172,6 +178,23 @@ expr e =
       tv <- fresh
       uni t1 (t2 `T.Arrow` tv)
       return tv
+
+
+record :: String -> [String] -> T.Type -> Infer T.Type
+record var (p:ps) r =
+  case r of
+    T.Record props -> case Map.lookup p props of
+      Just re@T.Record{} ->
+        record var ps re
+
+      Just t ->
+        return t
+
+      Nothing ->
+        throwError $ Err.UnboundProperty var p
+
+    _ ->
+      throwError $ Err.TypeMismatch (T.Record $ Map.singleton (show p) $ T.var "a") r
 
 
 lit :: Ch.Lit -> Infer T.Type

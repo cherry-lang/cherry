@@ -6,7 +6,7 @@ import qualified Type as T
 type Name   = String
 type Param  = String
 type Export = String
-type Runs   = String
+type Runs   = Expr
 type FuncId = (String, Int)
 
 
@@ -42,10 +42,10 @@ data Declaration
 
 data Expr
   = Var Pos Name
+  | Prop Pos [Name]
   | Lit Pos Lit
   | App Pos Expr Expr
   | Lambda [Param] Expr
-  | Arith Op Expr Expr
   deriving (Show)
 
 

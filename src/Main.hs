@@ -18,4 +18,4 @@ gen ctn =
     Left err  -> show err
     Right ast -> case typecheck ast of
       Left err  -> show err
-      Right ast -> (prettyPrint . codegen) ast
+      Right ast -> show ast -- (prettyPrint . codegen) ast
