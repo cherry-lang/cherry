@@ -1,15 +1,19 @@
 module Test runs (main)
 
-fromjs "./prelude" import (add, minus, divide)
-
+fromjs "./Prelude" import (add, minus, divide)
 
 
 console : { log : String -> String }
 minus   : a -> a -> a
 
+
+infix 1 (-) = minus
+
+
+
 greet : String -> Int -> String
-greet name asdf =
-  name
+greet name asdf = name
+
 
 
 main =
