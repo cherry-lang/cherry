@@ -29,6 +29,7 @@ data Comp
 data Expr
   = Lit Lit
   | Var Name
+  | Prop [Name]
   | App Expr [Expr]
   | Lambda [Param] [Statement]
   | Comp Comp Expr Expr

@@ -52,6 +52,9 @@ instance Transform Ch.Expr Js.Expr where
       Ch.Var _ name ->
         Js.Var name
 
+      Ch.Prop _ prop ->
+        Js.Prop prop
+
       Ch.App _ e1 e2 ->
         let
           exprs = traverseApp e1 ++ [e2]

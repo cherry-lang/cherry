@@ -62,9 +62,7 @@ mapIntersperse_ sp fn (x:xs) = do
     mapIntersperse_ sp fn xs
 
 
-----------------------------------------------------------------
--- Parts
-----------------------------------------------------------------
+-- PARTS
 
 
 func :: String -> [String] -> Doc
@@ -95,9 +93,7 @@ commaSpc :: Doc
 commaSpc = comma <> space
 
 
-----------------------------------------------------------------
--- Printers
-----------------------------------------------------------------
+-- PRINTERS
 
 
 pModule :: Js.Module -> Printer ()
@@ -161,10 +157,12 @@ pExpr expr = case expr of
     Js.Var var ->
         append $ text var
 
+    Js.Prop prop ->
+        append $ text $ concat $ intersperse "." prop
+
     Js.App fn args -> do
+        pParensExpr fn
         append lparen
-        pExpr fn
-        append $ rparen <> lparen
         mapIntersperse_ (append commaSpc) pExpr args
         append rparen
 
@@ -179,6 +177,21 @@ pExpr expr = case expr of
         pExpr e1
         append compareEq
         pExpr e2
+
+
+pParensExpr :: Js.Expr -> Printer ()
+pParensExpr e =
+  case e of
+    Js.Var _ ->
+      pExpr e
+
+    Js.Prop _ ->
+      pExpr e
+
+    _ -> do
+      append lparen
+      pExpr e
+      append $ rparen
 
 
 pLit :: Js.Lit -> Printer ()
