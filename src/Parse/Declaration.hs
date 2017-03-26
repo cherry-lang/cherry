@@ -1,19 +1,19 @@
 module Parse.Declaration where
 
-import           Data.Char
 import           Text.Megaparsec  (try, (<|>))
 import qualified Text.Megaparsec  as P
 
+import           Parse.Expression (string)
 import qualified Parse.Expression as P
 import qualified Parse.Lexer      as L
 import           Parse.Parse
 import qualified Parse.Type       as P
 import qualified Syntax           as Ch
-import qualified Type             as T
 
 
 decl :: Parser Ch.Declaration
 decl = try func
+   <|> try importjs
    <|> try P.typeAnnDecl
 
 
@@ -25,3 +25,13 @@ func = L.refIndent >> do
   L.equals *> L.scn
   exprs  <- P.some (L.indented *> P.expr <* L.scn)
   return $ Ch.Func pos (name, length params) params exprs
+
+
+importjs :: Parser Ch.Declaration
+importjs = do
+  pos <- L.pos
+  L.rWord "fromjs"
+  (Ch.String src) <- string
+  L.rWord "import"
+  imports <- L.parens $ L.ident `P.sepBy` L.comma
+  return $ Ch.ImportJs pos src $ map Ch.Plain imports

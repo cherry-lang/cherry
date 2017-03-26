@@ -57,11 +57,11 @@ type' = try record
 
 
 tvar :: Parser T.Type
-tvar = (:) <$> P.lowerChar <*> L.ident >>= return . T.var
+tvar = L.lexeme $ (:) <$> P.lowerChar <*> (P.many P.alphaNumChar) >>= return . T.var
 
 
 con :: Parser T.Type
-con = (:) <$> P.upperChar <*> L.ident >>= return . T.Con
+con = L.lexeme $ (:) <$> P.upperChar <*> (P.many P.alphaNumChar) >>= return . T.var
 
 
 record :: Parser T.Type

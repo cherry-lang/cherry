@@ -104,12 +104,18 @@ pModule (Js.Module sts) = do
 pStatement :: Js.Statement -> Printer ()
 pStatement st = case st of
     Js.Func name params sts -> do
+        newline
         appendN $ (func name params) <+> lbrace
         indent
         mapM_ pStatement sts
         dedent
         appendN rbrace
-        newline
+
+    Js.Import src imports -> do
+        appendN $ text "import" <+> lbrace
+        mapIntersperse_ (append commaSpc) (append . text) imports
+        append $ rbrace <+> text "from" <+> (doubleQuotes $ text src)
+        append semi
 
     Js.If cases -> do
         pIf cases

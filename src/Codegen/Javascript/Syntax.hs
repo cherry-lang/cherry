@@ -16,6 +16,7 @@ data Statement
   | Const Name Expr
   | Return Expr
   | Export Name
+  | Import Name [String]
   | If [(Expr, [Statement])]
   | Skip
   deriving (Show)

@@ -34,13 +34,16 @@ instance Transform Ch.Declaration Js.Statement where
     case decl of
       Ch.Func _ (name, _) params exprs ->
         let
-          statements = map (Js.Expr . transform) (tail exprs) ++
-                       [Js.Return $ transform $ head exprs]
+          statements = map (Js.Expr . transform) (init exprs) ++
+                       [Js.Return $ transform $ last exprs]
         in
           Js.Func name params statements
 
       Ch.TypeAnn _ _ _ ->
         Js.Skip
+
+      Ch.ImportJs _ src imports' ->
+        Js.Import src $ map (\(Ch.Plain x) -> x) imports'
 
 
 instance Transform Ch.Expr Js.Expr where

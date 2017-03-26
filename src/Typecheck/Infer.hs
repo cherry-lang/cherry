@@ -120,10 +120,20 @@ module' :: Ch.Module -> Infer T.Type
 module' (Ch.Module _ _ runs decls) = topDecls decls
 
 
+imports :: [Ch.ImportAssign] -> Infer a -> Infer a
+imports [] m             = m
+imports (Ch.Plain h:t) m = do
+  tv <- fresh
+  inEnv (h, T.Forall [] tv) (imports t m)
+
+
 topDecls :: [Ch.Declaration] -> Infer T.Type
 topDecls [] = return $ T.var ""
 topDecls (d:ds) =
   case d of
+    Ch.ImportJs _ src is ->
+      imports is (topDecls ds)
+
     Ch.TypeAnn _ (name, _) type' -> do
       env <- ask
       inEnv (name, generalize env type') $ topDecls ds
@@ -181,6 +191,7 @@ expr e =
 
 
 record :: String -> [String] -> T.Type -> Infer T.Type
+record _ [] _       = fail "Can't access record without a prop."
 record var (p:ps) r =
   case r of
     T.Record props -> case Map.lookup p props of
