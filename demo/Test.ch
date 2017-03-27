@@ -7,9 +7,16 @@ console : { log : String -> String }
 add     : a -> a -> a
 
 
-(+) : String -> String -> String
+(+) : a -> a -> a 
 (+) x y = add x y
 
 
+(|>) : a -> (a -> b) -> b
+(|>) x f = f x
+
+
+addExclm : String -> String
+addExclm str = str + "!"
+
 main =
-    console.log ("Hello" + "World" + "!")
+    "asdf" |> addExclm |> console.log

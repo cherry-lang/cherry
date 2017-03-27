@@ -46,12 +46,13 @@ typeAnn :: Parser (String, T.Type)
 typeAnn = do
   name <- P.choice [L.parens L.infixOp, L.ident]
   L.colon
-  ann  <- type' `P.sepBy` L.arrowr
-  return (name, toArrow ann)
+  ann  <- arrow
+  return (name, ann)
 
 
 type' :: Parser T.Type
 type' = try record
+    <|> try (L.parens arrow)
     <|> try tvar
     <|> try con
 
@@ -68,3 +69,7 @@ record :: Parser T.Type
 record = L.braces $ do
   props <- typeAnn `P.sepBy` L.comma
   return $ T.Record $ Map.fromList props
+
+
+arrow :: Parser T.Type
+arrow = toArrow <$> type' `P.sepBy` L.arrowr
