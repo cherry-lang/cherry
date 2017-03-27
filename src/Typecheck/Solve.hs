@@ -62,7 +62,7 @@ instance Substitutable a => Substitutable [a] where
 instance Substitutable Environment where
   apply s (Environment env type') = Environment (Map.map (apply s) env) type'
 
-  ftv (Environment env type') = ftv $ Map.elems env
+  ftv (Environment env _) = ftv $ Map.elems env
 
 
 emptySubst :: Subst

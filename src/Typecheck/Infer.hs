@@ -131,12 +131,12 @@ topDecls :: [Ch.Declaration] -> Infer T.Type
 topDecls [] = return $ T.var ""
 topDecls (d:ds) =
   case d of
-    Ch.ImportJs _ src is ->
+    Ch.ImportJs _ _ is ->
       imports is (topDecls ds)
 
     Ch.TypeAnn _ (name, _) type' -> do
       env <- ask
-      inEnv (name, generalize env type') $ topDecls ds
+      inEnv (name, T.Forall (Set.toList $ ftv type') type') $ topDecls ds
 
     Ch.Func _ (name, _) params exprs -> do
       let rest  = init exprs
