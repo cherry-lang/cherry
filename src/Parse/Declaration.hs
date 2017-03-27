@@ -20,11 +20,13 @@ decl = try func
 func :: Parser Ch.Declaration
 func = L.refIndent >> do
   pos    <- L.pos
-  name   <- L.ident
+  name   <- P.choice [infixName, L.ident]
   params <- P.many L.ident
   L.equals *> L.scn
   exprs  <- P.some (L.indented *> P.expr <* L.scn)
   return $ Ch.Func pos (name, length params) params exprs
+  where
+    infixName = L.parens L.infixOp
 
 
 importjs :: Parser Ch.Declaration

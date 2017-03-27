@@ -1,15 +1,17 @@
 module Parse.Expression where
 
-import           Text.Megaparsec   ((<|>), try)
-import qualified Text.Megaparsec   as P
+import           Text.Megaparsec      (try, (<|>))
+import qualified Text.Megaparsec      as P
+import qualified Text.Megaparsec.Expr as P
 
-import qualified Parse.Lexer       as L
+import qualified Parse.Lexer          as L
 import           Parse.Parse
-import qualified Syntax            as Ch
+import qualified Syntax               as Ch
 
 
 expr :: Parser Ch.Expr
 expr = try app
+   <|> try infixApp
    <|> try term
 
 
@@ -29,6 +31,18 @@ prop = do
 
 var :: Parser Ch.Expr
 var = (Ch.Var <$> L.pos) <*> L.ident
+
+
+infixApp :: Parser Ch.Expr
+infixApp = P.makeExprParser term table
+  where
+    infixP = do
+      pos <- L.pos
+      inf <- L.infixOp
+      return $ \e e' -> Ch.App pos (Ch.App pos (Ch.Var pos inf) e) e'
+
+    table =
+      [[ P.InfixL infixP ]]
 
 
 app :: Parser Ch.Expr

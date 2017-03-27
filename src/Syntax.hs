@@ -49,16 +49,6 @@ data Expr
   deriving (Show)
 
 
-data Op
-  = Add
-  | Subtract
-  | Mulitply
-  | Divide
-  | PowerOf
-  | Modulos
-  deriving (Show)
-
-
 data Lit
   = Bool Bool
   | String String

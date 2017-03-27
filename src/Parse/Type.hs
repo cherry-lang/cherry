@@ -44,7 +44,7 @@ typeAnnDecl = do
 
 typeAnn :: Parser (String, T.Type)
 typeAnn = do
-  name <- L.ident
+  name <- P.choice [L.parens L.infixOp, L.ident]
   L.colon
   ann  <- type' `P.sepBy` L.arrowr
   return (name, toArrow ann)

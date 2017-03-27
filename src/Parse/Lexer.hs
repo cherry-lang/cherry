@@ -74,6 +74,10 @@ prop = lexeme $ do
   return $ p ++ [p']
 
 
+infixOp :: Parser String
+infixOp = lexeme $ P.some $ P.oneOf "?|></$=+*^-~"
+
+
 checkReserved :: String -> Parser String
 checkReserved x =
   if x `elem` reservedWords
