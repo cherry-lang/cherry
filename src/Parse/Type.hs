@@ -62,7 +62,7 @@ tvar = L.lexeme $ (:) <$> P.lowerChar <*> (P.many P.alphaNumChar) >>= return . T
 
 
 con :: Parser T.Type
-con = L.lexeme $ (:) <$> P.upperChar <*> (P.many P.alphaNumChar) >>= return . T.var
+con = L.lexeme $ (:) <$> P.upperChar <*> (P.many P.alphaNumChar) >>= return . T.Con
 
 
 record :: Parser T.Type

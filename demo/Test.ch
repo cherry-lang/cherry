@@ -1,11 +1,11 @@
 module Test runs (main)
 
-fromjs "./Prelude" import (add, minus, divide)
+fromjs "./Prelude" import (add, minus, divide, length)
 
 
-console : { log : String -> String }
+console : { log : a -> String }
 add     : a -> a -> a
-
+length : a -> Int
 
 (+) : a -> a -> a 
 (+) x y = add x y
@@ -15,8 +15,6 @@ add     : a -> a -> a
 (|>) x f = f x
 
 
-addExclm : String -> String
-addExclm str = str + "!"
 
 main =
-    "asdf" |> addExclm |> console.log
+    "asdf" |> length |> console.log
