@@ -30,12 +30,12 @@ class Substitutable a where
 
 instance Substitutable T.Type where
   apply _ (T.Con type')             = T.Con type'
-  apply _ type'@T.Record{}          = type'
+  apply _ type'@T.Record{}          = type' -- TODO: Change to proper implementation
   apply (Subst s) type'@(T.Var var) = Map.findWithDefault type' var s
   apply subst (t1 `T.Arrow` t2)     = apply subst t1 `T.Arrow` apply subst t2
 
   ftv T.Con{}         = Set.empty
-  ftv T.Record{}      = Set.empty
+  ftv T.Record{}      = Set.empty -- TODO: Should change this to a proper implementation
   ftv (T.Var var)     = Set.singleton var
   ftv (T.Arrow t1 t2) = ftv t1 `Set.union` ftv t2
 
