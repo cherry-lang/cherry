@@ -9,7 +9,7 @@ import           Parse.Parse
 import qualified Syntax            as Ch
 
 
-module' :: Parser Ch.Module
+module' :: Parser (Ch.Module Ch.Source)
 module' = do
   L.rWord "module"
   name     <- L.ident
@@ -17,15 +17,15 @@ module' = do
   runs'    <- P.option [] runs
   decls    <- P.many (L.scn *> P.decl <* L.scn)
   P.eof
-  return $ Ch.Module name exports' runs' decls
+  return $ Ch.Module name "" (Ch.Source exports' runs' decls)
 
 
-exports :: Parser [Ch.Export]
+exports :: Parser [String]
 exports =
   L.rWord "exports" *> L.parens (L.ident `P.sepBy` L.comma)
 
 
-runs :: Parser [Ch.Runs]
+runs :: Parser [Ch.Expr]
 runs = do
   L.rWord "runs"
   rs <- L.parens (run `P.sepBy` L.comma)

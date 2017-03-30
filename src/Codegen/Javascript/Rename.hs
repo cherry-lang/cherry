@@ -37,7 +37,7 @@ evalRename :: Rename a -> RenameState -> a
 evalRename m s = evalState (runRename m) s
 
 
-rename :: Ch.Module -> Ch.Module
+rename :: Ch.Module Ch.Source -> Ch.Module Ch.Source
 rename m = evalRename (rn m) $ execRename $ collect m
 
 
@@ -101,21 +101,21 @@ instance Renamable Name where
   rn = lookupRenamed
 
 
-instance Renamable Ch.Module where
+instance Renamable (Ch.Module Ch.Source) where
   collect m =
     case m of
-      Ch.Module _ exports runs decls -> do
+      Ch.Module _ _ (Ch.Source exports runs decls) -> do
         mapM_ collect exports
         mapM_ collect runs
         mapM_ collect decls
 
   rn m =
     case m of
-      Ch.Module pos exports runs decls -> do
+      Ch.Module name fp (Ch.Source exports runs decls) -> do
         exports' <- mapM rn exports
         runs'    <- mapM rn runs
         decls'   <- mapM rn decls
-        return $ Ch.Module pos exports' runs' decls'
+        return $ Ch.Module name fp (Ch.Source exports' runs' decls')
 
 
 instance Renamable Ch.Declaration where

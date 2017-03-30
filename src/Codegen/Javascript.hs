@@ -8,5 +8,5 @@ import           Codegen.Javascript.Transform (transform)
 import qualified Syntax                       as Ch
 
 
-codegen :: Ch.Module -> Js.Module
+codegen :: Ch.Module Ch.Source -> Js.Module
 codegen = merge . transform . rename

@@ -34,7 +34,7 @@ var = (Ch.Var <$> L.pos) <*> L.ident
 
 
 infixApp :: Parser Ch.Expr
-infixApp = P.makeExprParser term table
+infixApp = P.makeExprParser (try app <|> term) table
   where
     infixP = do
       pos <- L.pos

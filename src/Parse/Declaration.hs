@@ -13,6 +13,7 @@ import qualified Syntax           as Ch
 
 decl :: Parser Ch.Declaration
 decl = try func
+   <|> try import'
    <|> try importjs
    <|> try P.typeAnnDecl
 
@@ -37,3 +38,13 @@ importjs = do
   L.rWord "import"
   imports <- L.parens $ L.ident `P.sepBy` L.comma
   return $ Ch.ImportJs pos src $ map Ch.Plain imports
+
+
+import' :: Parser Ch.Declaration
+import' = do
+  pos <- L.pos
+  L.rWord "from"
+  mod' <- L.identWith "/"
+  L.rWord "import"
+  imports <- L.parens $ L.ident `P.sepBy` L.comma
+  return $ Ch.Import pos mod' $ map Ch.Plain imports

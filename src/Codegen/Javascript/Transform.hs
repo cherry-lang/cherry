@@ -1,4 +1,5 @@
-{-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 
 module Codegen.Javascript.Transform where
 
@@ -6,7 +7,7 @@ import qualified Codegen.Javascript.Syntax as Js
 import qualified Syntax                    as Ch
 
 
-codegen :: Ch.Module -> Js.Module
+codegen :: Ch.Module Ch.Source -> Js.Module
 codegen = transform
 
 
@@ -22,8 +23,8 @@ class Transform a b where
   transform :: a -> b
 
 
-instance Transform Ch.Module Js.Module where
-  transform (Ch.Module _ exports runs decls) =
+instance Transform (Ch.Module Ch.Source) Js.Module where
+  transform (Ch.Module _ _ (Ch.Source exports runs decls)) =
      Js.Module $
        map transform decls
        ++ map (Js.Expr . transform) runs
@@ -44,6 +45,9 @@ instance Transform Ch.Declaration Js.Statement where
 
       Ch.ImportJs _ src imports' ->
         Js.Import src $ map (\(Ch.Plain x) -> x) imports'
+
+      Ch.Import _ mod' imports' ->
+        Js.Import mod' $ map (\(Ch.Plain x) -> x) imports'
 
 
 instance Transform Ch.Expr Js.Expr where

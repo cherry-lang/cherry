@@ -11,7 +11,7 @@ import qualified Syntax              as Ch
 type Filename = String
 
 
-parse :: Filename -> String -> Either String Ch.Module
+parse :: Filename -> String -> Either String (Ch.Module Ch.Source)
 parse filename src =
   case evalState (runParserT P.module' filename src) P.emptyParserState of
     Left err ->

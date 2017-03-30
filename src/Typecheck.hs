@@ -7,7 +7,7 @@ import           Typecheck.Infer       (infer)
 import           Typecheck.Solve       (solve)
 
 
-typecheck :: Ch.Module -> Either Error Ch.Module
+typecheck :: Ch.Module Ch.Source -> Either Error (Ch.Module Ch.Source)
 typecheck m =
   case infer emptyEnv m of
     Left err -> Left err

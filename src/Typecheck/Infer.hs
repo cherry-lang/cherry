@@ -5,12 +5,13 @@ import           Control.Monad.RWS
 import           Data.List
 import qualified Data.Map              as Map
 import qualified Data.Set              as Set
+import           System.IO.Unsafe
 
 import qualified Syntax                as Ch
 import qualified Type                  as T
 import           Typecheck.Constraint
 import           Typecheck.Environment
-import    qualified       Typecheck.Error as Err
+import qualified Typecheck.Error       as Err
 import           Typecheck.Solve
 
 
@@ -108,7 +109,7 @@ generalize env type' = T.Forall as type'
 -- INFERENCE
 
 
-infer :: Environment -> Ch.Module -> Either Err.Error (T.Type, [Constraint])
+infer :: Environment -> Ch.Module Ch.Source -> Either Err.Error (T.Type, [Constraint])
 infer env m = runInfer env $ module' m
 
 
@@ -116,8 +117,8 @@ runInfer :: Environment -> Infer T.Type -> Either Err.Error (T.Type, [Constraint
 runInfer env m = runExcept $ evalRWST m env emptyInfer
 
 
-module' :: Ch.Module -> Infer T.Type
-module' (Ch.Module _ _ runs decls) = topDecls decls
+module' :: Ch.Module Ch.Source -> Infer T.Type
+module' (Ch.Module _ _ (Ch.Source _ runs decls)) = topDecls decls
 
 
 imports :: [Ch.ImportAssign] -> Infer a -> Infer a
@@ -155,6 +156,12 @@ topDecls (d:ds) =
 
         Just t ->
           uni t type' >> topDecls ds
+
+    Ch.Import _ name is -> do
+      return $ T.var ""
+
+    _ ->
+      return $ T.var ""
 
 
 param :: [String] -> Infer T.Type -> Infer T.Type
