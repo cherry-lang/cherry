@@ -3,6 +3,8 @@
 
 module Syntax.Module where
 
+import qualified Data.Map              as Map
+
 import           Syntax.Declaration
 import           Syntax.Expression
 import           Typecheck.Environment
@@ -63,5 +65,16 @@ emptyModule = Module
 
 
 moduleToInterface :: Module -> Interface
-moduleToInterface (Module { name, typeEnv, fixities }) =
-  Interface { _name = name, _fixities = fixities, _typeEnv = typeEnv }
+moduleToInterface (Module { name, typeEnv, fixities, exports }) =
+  let
+    filterEnv env =
+      env { vars = Map.filterWithKey (\k _ -> elem k exports) $ vars env }
+
+    filterFixities fixs =
+      filter (\(Infix _ _ op) -> elem op exports) fixs
+  in
+    Interface
+      { _name = name
+      , _fixities = filterFixities fixities
+      , _typeEnv = filterEnv typeEnv
+      }

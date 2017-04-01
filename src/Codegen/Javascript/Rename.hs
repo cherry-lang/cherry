@@ -105,18 +105,43 @@ instance Renamable Name where
 instance Renamable Ch.Module where
   collect m =
     case m of
-      Ch.Module { Ch.exports, Ch.runs, Ch.decls } -> do
+      Ch.Module { Ch.imports, Ch.exports, Ch.runs, Ch.decls } -> do
+        mapM_ collect imports
         mapM_ collect exports
         mapM_ collect runs
         mapM_ collect decls
 
   rn m =
     case m of
-      Ch.Module { Ch.exports, Ch.runs, Ch.decls } -> do
+      Ch.Module { Ch.imports, Ch.exports, Ch.runs, Ch.decls } -> do
+        imports' <- mapM rn imports
         exports' <- mapM rn exports
         runs'    <- mapM rn runs
         decls'   <- mapM rn decls
-        return $ m { Ch.exports = exports', Ch.runs = runs', Ch.decls = decls' }
+        return $ m
+          { Ch.exports = exports'
+          , Ch.runs    = runs'
+          , Ch.decls   = decls'
+          , Ch.imports = imports'
+          }
+
+
+instance Renamable Ch.Import where
+  collect imp =
+    case imp of
+      Ch.Import Ch.Cherry _ assigns ->
+        mapM_ collect assigns
+
+      _ ->
+        return ()
+  rn imp =
+    case imp of
+      Ch.Import Ch.Cherry name assigns -> do
+        assigns' <- mapM rn assigns
+        return $ Ch.Import Ch.Cherry name assigns'
+
+      _ ->
+        return imp
 
 
 instance Renamable Ch.Declaration where
@@ -151,33 +176,33 @@ instance Renamable Ch.Declaration where
         return decl
 
 
--- instance Renamable Ch.ImportAssign where
---   collect import' =
---     case import' of
---       Ch.DefaultAs name ->
---         collect name
+instance Renamable Ch.Assign where
+  collect import' =
+    case import' of
+      Ch.DefaultAs name ->
+        collect name
 
---       Ch.As name name' -> do
---         collect name
---         collect name'
+      Ch.As name name' -> do
+        collect name
+        collect name'
 
---       Ch.Plain name ->
---         collect name
+      Ch.Plain name ->
+        collect name
 
---   rn import' =
---     case import' of
---       Ch.DefaultAs name -> do
---         name' <- rn name
---         return $ Ch.DefaultAs name'
+  rn import' =
+    case import' of
+      Ch.DefaultAs name -> do
+        name' <- rn name
+        return $ Ch.DefaultAs name'
 
---       Ch.As name name' -> do
---         name0 <- rn name
---         name1 <- rn name'
---         return $ Ch.As name0 name1
+      Ch.As name name' -> do
+        name0 <- rn name
+        name1 <- rn name'
+        return $ Ch.As name0 name1
 
---       Ch.Plain name -> do
---         name' <- rn name
---         return $ Ch.Plain name'
+      Ch.Plain name -> do
+        name' <- rn name
+        return $ Ch.Plain name'
 
 
 instance Renamable Ch.Expr where

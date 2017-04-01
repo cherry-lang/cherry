@@ -1,4 +1,4 @@
-module Prelude exports (add)
+module Prelude exports ((/), (+), add)
 
 fromjs "./Js/Prelude" import (add, minus, divide, length)
 

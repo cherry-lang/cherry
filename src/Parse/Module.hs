@@ -44,7 +44,7 @@ header = do
 
 exports :: Parser [String]
 exports =
-  L.rWord "exports" *> L.parens (L.ident `P.sepBy` L.comma)
+  L.rWord "exports" *> L.parens (importName `P.sepBy` L.comma)
 
 
 runs :: Parser [Ch.Expr]
@@ -64,8 +64,17 @@ imports = do
   srcType <- importSrcType
   import' <- try (L.doubleQuotes L.string) <|> L.identWith "/"
   L.rWord "import"
-  imports' <- L.parens $ L.ident `P.sepBy` L.comma
+  imports' <- L.parens $ importName `P.sepBy` L.comma
   return $ Ch.Import srcType import' $ map Ch.Plain imports'
+
+
+importName :: Parser String
+importName =
+  let
+    op  = L.parens L.infixOp
+    id' = L.ident
+  in
+    try op <|> id'
 
 
 importSrcType :: Parser Ch.SourceType

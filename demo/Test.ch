@@ -1,7 +1,7 @@
 module Test runs (main)
 
 
-from Prelude import (add)
+from Prelude import ((+), (/), add, divide)
 from MyMod   import (greet)
 
 
