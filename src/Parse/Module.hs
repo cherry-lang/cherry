@@ -1,20 +1,29 @@
 module Parse.Module where
 
-import           Text.Megaparsec   ((<|>), try)
-import qualified Text.Megaparsec   as P
+import           Text.Megaparsec     (try, (<|>))
+import qualified Text.Megaparsec     as P
 
-import qualified Parse.Declaration as P
-import qualified Parse.Lexer       as L
+import qualified Parse.Declaration   as P
+import qualified Parse.Lexer         as L
 import           Parse.Parse
-import qualified Syntax            as Ch
+import qualified Syntax              as Ch
 
 
 module' :: [Ch.Interface] -> Parser Ch.Module
-module' _ = do
-  header' <- header
-  decls   <- P.many (L.scn *> P.decl <* L.scn)
+module' interfaces = do
+  header'  <- header
+  mapM_ (integrate header') interfaces
+  decls    <- P.many (L.scn *> P.decl <* L.scn)
+  infixes' <- infixList
   P.eof
-  return $ header' { Ch.decls = decls }
+  return $ header'
+    { Ch.decls = decls
+    , Ch.fixities = infixes'
+    }
+
+
+integrate :: Ch.Module -> Ch.Interface -> Parser ()
+integrate _ interface = mapM_ addInfix $ Ch._fixities interface
 
 
 header :: Parser Ch.Module

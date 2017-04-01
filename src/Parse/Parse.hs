@@ -25,6 +25,11 @@ emptyParserState :: ParserState
 emptyParserState = ParserState "" (unsafePos 0) Map.empty
 
 
+infixList :: Parser [Ch.Infix]
+infixList = gets infixes >>= return . flt
+  where flt m = foldl (++) [] $ map Set.toList $ Map.elems m
+
+
 infixEq :: Ch.Infix -> Ch.Infix -> Bool
 infixEq (Ch.Infix _ _ op) (Ch.Infix _ _ op') = op == op'
 
