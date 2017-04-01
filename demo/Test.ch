@@ -4,6 +4,8 @@ fromjs "./Prelude" import (add, minus, divide, length)
 
 from MyMod import (greet)
 
+
+
 console : { log : a -> String }
 add    : a -> a -> a
 minus  : a -> a -> a
@@ -31,7 +33,10 @@ infixl 9 /
 infixl 7 |>
 
 
+greeter : String -> String
+greeter name = "hello " + name
+
 
 main =
-    greet True
+    greeter True
     console.log (toString ((10 + 5) / 2))

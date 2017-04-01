@@ -10,9 +10,13 @@
 (setq cherry-font-lock-keywords
       `((,cherry-constants-regexp . font-lock-constant-face)
         (,cherry-keywords-regexp . font-lock-keyword-face)
+        ("^\\([a-z_][0-9A-Za-z_']*\\|([^)]+)\\)" . font-lock-function-name-face)
+        ("\\<[A-Z][0-9A-Za-z_]*" . font-lock-type-face)
         ))
 
 (define-derived-mode cherry-mode prog-mode "Cherry"
   (setq-default indent-tabs-mode nil)
 
   (setq font-lock-defaults '((cherry-font-lock-keywords))))
+
+(provide 'cherry-mode)
