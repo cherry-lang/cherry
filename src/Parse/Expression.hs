@@ -1,15 +1,16 @@
 module Parse.Expression where
 
 import           Control.Monad.State
-import qualified Data.Map             as Map
-import qualified Data.Set             as Set
-import           Text.Megaparsec      (try, (<|>))
-import qualified Text.Megaparsec      as P
-import qualified Text.Megaparsec.Expr as P
+import qualified Data.Map              as Map
+import qualified Data.Set              as Set
+import           Text.Megaparsec       (try, (<|>))
+import qualified Text.Megaparsec       as P
+import qualified Text.Megaparsec.Expr  as P
+import qualified Text.Megaparsec.Lexer as P
 
-import qualified Parse.Lexer          as L
+import qualified Parse.Lexer           as L
 import           Parse.Parse
-import qualified Syntax               as Ch
+import qualified Syntax                as Ch
 import           Utils
 
 
@@ -69,10 +70,10 @@ opTable = gets infixes >>= \infs ->
 
 
 app :: Parser Ch.Expr
-app = do
+app = P.lineFold L.scn $ \sc' -> do
   pos  <- L.pos
   func <- term
-  args <- P.some term
+  args <- P.some (sc' *> term <* L.scn)
   return $ foldl (\app arg -> Ch.App pos app arg) func args
 
 
