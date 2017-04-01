@@ -5,7 +5,6 @@ module Parse.Lexer where
 import           Control.Applicative   (empty)
 import           Control.Monad         (void)
 import           Control.Monad.State
-import           Data.List.Split
 
 import           Text.Megaparsec       ((<|>))
 import qualified Text.Megaparsec       as P
@@ -34,7 +33,6 @@ reservedWords =
   , "null"
   , "undefined"
   ]
-
 
 
 scn :: Parser ()
@@ -113,6 +111,10 @@ doubleQuotes :: Parser a -> Parser a
 doubleQuotes = P.between (sym "\"") (sym "\"")
 
 
+string :: Parser String
+string = P.many $ (P.noneOf ['"'] <|> P.char ' ')
+
+
 comma :: Parser ()
 comma = void $ sym ","
 
@@ -134,7 +136,9 @@ equals = void $ sym "="
 
 
 refIndent :: Parser ()
-refIndent = L.indentLevel >>= put . ParserState
+refIndent = do
+  pos' <- L.indentLevel
+  modify $ \s -> s { indentLevel = pos' }
 
 
 resetIndent :: Parser ()

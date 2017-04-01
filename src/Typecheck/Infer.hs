@@ -1,3 +1,6 @@
+{-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE NamedFieldPuns        #-}
+
 module Typecheck.Infer where
 
 import           Control.Monad.Except
@@ -60,9 +63,8 @@ inEnv (name, scheme) m = do
 
 lookupEnv :: String -> Infer (Maybe T.Type)
 lookupEnv name = do
-  (Environment vars' _) <- ask
-
-  case Map.lookup name vars' of
+  env <- ask
+  case lookupVar name env of
     Nothing ->
       return Nothing
 
@@ -109,34 +111,41 @@ generalize env type' = T.Forall as type'
 -- INFERENCE
 
 
-infer :: Environment -> Ch.Module Ch.Source -> Either Err.Error (T.Type, [Constraint])
+infer
+  :: Environment
+  -> Ch.Module
+  -> Either Err.Error (Ch.Module, [Constraint])
 infer env m = runInfer env $ module' m
 
 
-runInfer :: Environment -> Infer T.Type -> Either Err.Error (T.Type, [Constraint])
-runInfer env m = runExcept $ evalRWST m env emptyInfer
+runInfer :: Environment -> Infer a -> Either Err.Error (a, [Constraint])
+runInfer env m =
+  case runExcept $ evalRWST m env emptyInfer of
+    Left err ->
+      Left err
+
+    Right result ->
+      Right result
 
 
-module' :: Ch.Module Ch.Source -> Infer T.Type
-module' (Ch.Module _ _ (Ch.Source _ runs decls)) = topDecls decls
+module' :: Ch.Module -> Infer Ch.Module
+module' m@(Ch.Module { Ch.decls }) = do
+  env <- topDecls decls
+  return $ m { Ch.typeEnv = env }
 
 
-imports :: [Ch.ImportAssign] -> Infer a -> Infer a
+imports :: [Ch.Assign] -> Infer a -> Infer a
 imports [] m             = m
 imports (Ch.Plain h:t) m = do
   tv <- fresh
   inEnv (h, T.Forall [] tv) (imports t m)
 
 
-topDecls :: [Ch.Declaration] -> Infer T.Type
-topDecls [] = return $ T.var ""
+topDecls :: [Ch.Declaration] -> Infer Environment
+topDecls [] = ask
 topDecls (d:ds) =
   case d of
-    Ch.ImportJs _ _ is ->
-      imports is (topDecls ds)
-
     Ch.TypeAnn _ (name, _) type' -> do
-      env <- ask
       inEnv (name, T.Forall (Set.toList $ ftv type') type') $ topDecls ds
 
     Ch.Func _ (name, _) params exprs -> do
@@ -157,11 +166,8 @@ topDecls (d:ds) =
         Just t ->
           uni t type' >> topDecls ds
 
-    Ch.Import _ name is -> do
-      return $ T.var ""
-
     _ ->
-      return $ T.var ""
+      ask
 
 
 param :: [String] -> Infer T.Type -> Infer T.Type

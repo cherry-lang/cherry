@@ -17,9 +17,5 @@ length : a -> Int
 (+) x y = add x y
 
 
-greet : String -> String
-greet fname = "Hello " + fname
-
-
 main =
-  console.log (greet "Gunnar")
+  console.log (greet (ms False))

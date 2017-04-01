@@ -1,13 +1,15 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE NamedFieldPuns        #-}
 
 module Codegen.Javascript.Transform where
 
 import qualified Codegen.Javascript.Syntax as Js
 import qualified Syntax                    as Ch
+import Utils
 
 
-codegen :: Ch.Module Ch.Source -> Js.Module
+codegen :: Ch.Module -> Js.Module
 codegen = transform
 
 
@@ -23,11 +25,23 @@ class Transform a b where
   transform :: a -> b
 
 
-instance Transform (Ch.Module Ch.Source) Js.Module where
-  transform (Ch.Module _ _ (Ch.Source exports runs decls)) =
+instance Transform Ch.Module Js.Module where
+  transform m@(Ch.Module { Ch.imports, Ch.exports, Ch.runs, Ch.decls }) =
      Js.Module $
-       map transform decls
+       map (resolveImports m) imports
+       ++ map transform decls
        ++ map (Js.Expr . transform) runs
+
+
+resolveImports :: Ch.Module -> Ch.Import -> Js.Statement
+resolveImports (Ch.Module { Ch.name }) (Ch.Import _ name' imports) =
+  Js.Import (resolveImportPath name name') $ map transform imports
+
+
+instance Transform Ch.Assign String where
+  transform (Ch.DefaultAs name) = "default as " ++ name
+  transform (Ch.As name name')  = name ++ " as " ++ name'
+  transform (Ch.Plain name)     = name
 
 
 instance Transform Ch.Declaration Js.Statement where
@@ -42,12 +56,6 @@ instance Transform Ch.Declaration Js.Statement where
 
       Ch.TypeAnn _ _ _ ->
         Js.Skip
-
-      Ch.ImportJs _ src imports' ->
-        Js.Import src $ map (\(Ch.Plain x) -> x) imports'
-
-      Ch.Import _ mod' imports' ->
-        Js.Import mod' $ map (\(Ch.Plain x) -> x) imports'
 
 
 instance Transform Ch.Expr Js.Expr where

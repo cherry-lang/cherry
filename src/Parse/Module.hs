@@ -1,6 +1,6 @@
 module Parse.Module where
 
-import           Text.Megaparsec   (try)
+import           Text.Megaparsec   ((<|>), try)
 import qualified Text.Megaparsec   as P
 
 import qualified Parse.Declaration as P
@@ -9,15 +9,28 @@ import           Parse.Parse
 import qualified Syntax            as Ch
 
 
-module' :: Parser (Ch.Module Ch.Source)
-module' = do
+module' :: [Ch.Interface] -> Parser Ch.Module
+module' _ = do
+  header' <- header
+  decls   <- P.many (L.scn *> P.decl <* L.scn)
+  P.eof
+  return $ header' { Ch.decls = decls }
+
+
+header :: Parser Ch.Module
+header = do
   L.rWord "module"
-  name     <- L.ident
+  name'    <- L.identWith "/"
   exports' <- P.option [] exports
   runs'    <- P.option [] runs
-  decls    <- P.many (L.scn *> P.decl <* L.scn)
-  P.eof
-  return $ Ch.Module name "" (Ch.Source exports' runs' decls)
+  L.scn
+  imports' <- P.many (L.scn *> imports <* L.scn)
+  return $ Ch.emptyModule
+    { Ch.name    = name'
+    , Ch.exports = exports'
+    , Ch.runs    = runs'
+    , Ch.imports = imports'
+    }
 
 
 exports :: Parser [String]
@@ -35,3 +48,20 @@ runs = do
       pos <- L.pos
       fun <- L.ident
       return $ Ch.App pos (Ch.Var pos fun) (Ch.Lit pos Ch.Void)
+
+
+imports :: Parser Ch.Import
+imports = do
+  srcType <- importSrcType
+  import' <- try (L.doubleQuotes L.string) <|> L.identWith "/"
+  L.rWord "import"
+  imports' <- L.parens $ L.ident `P.sepBy` L.comma
+  return $ Ch.Import srcType import' $ map Ch.Plain imports'
+
+
+importSrcType :: Parser Ch.SourceType
+importSrcType =
+  P.choice
+    [ L.rWord "fromjs" >> return Ch.Js
+    , L.rWord "from" >> return Ch.Cherry
+    ]

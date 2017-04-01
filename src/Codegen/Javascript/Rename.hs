@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE NamedFieldPuns             #-}
 {-# LANGUAGE TypeSynonymInstances       #-}
 
 module Codegen.Javascript.Rename where
@@ -37,7 +38,7 @@ evalRename :: Rename a -> RenameState -> a
 evalRename m s = evalState (runRename m) s
 
 
-rename :: Ch.Module Ch.Source -> Ch.Module Ch.Source
+rename :: Ch.Module -> Ch.Module
 rename m = evalRename (rn m) $ execRename $ collect m
 
 
@@ -101,21 +102,21 @@ instance Renamable Name where
   rn = lookupRenamed
 
 
-instance Renamable (Ch.Module Ch.Source) where
+instance Renamable Ch.Module where
   collect m =
     case m of
-      Ch.Module _ _ (Ch.Source exports runs decls) -> do
+      Ch.Module { Ch.exports, Ch.runs, Ch.decls } -> do
         mapM_ collect exports
         mapM_ collect runs
         mapM_ collect decls
 
   rn m =
     case m of
-      Ch.Module name fp (Ch.Source exports runs decls) -> do
+      Ch.Module { Ch.exports, Ch.runs, Ch.decls } -> do
         exports' <- mapM rn exports
         runs'    <- mapM rn runs
         decls'   <- mapM rn decls
-        return $ Ch.Module name fp (Ch.Source exports' runs' decls')
+        return $ m { Ch.exports = exports', Ch.runs = runs', Ch.decls = decls' }
 
 
 instance Renamable Ch.Declaration where
@@ -129,10 +130,6 @@ instance Renamable Ch.Declaration where
       Ch.Const _ name expr -> do
         collect name
         collect expr
-
-      Ch.Import _ name imports -> do
-        collect name
-        mapM_ collect imports
 
       _ ->
         return ()
@@ -150,42 +147,37 @@ instance Renamable Ch.Declaration where
         expr' <- rn expr
         return $ Ch.Const pos name' expr'
 
-      Ch.Import pos name imports -> do
-        name'    <- rn name
-        imports' <- mapM rn imports
-        return $ Ch.Import pos name' imports'
-
       _ ->
         return decl
 
 
-instance Renamable Ch.ImportAssign where
-  collect import' =
-    case import' of
-      Ch.DefaultAs name ->
-        collect name
+-- instance Renamable Ch.ImportAssign where
+--   collect import' =
+--     case import' of
+--       Ch.DefaultAs name ->
+--         collect name
 
-      Ch.As name name' -> do
-        collect name
-        collect name'
+--       Ch.As name name' -> do
+--         collect name
+--         collect name'
 
-      Ch.Plain name ->
-        collect name
+--       Ch.Plain name ->
+--         collect name
 
-  rn import' =
-    case import' of
-      Ch.DefaultAs name -> do
-        name' <- rn name
-        return $ Ch.DefaultAs name'
+--   rn import' =
+--     case import' of
+--       Ch.DefaultAs name -> do
+--         name' <- rn name
+--         return $ Ch.DefaultAs name'
 
-      Ch.As name name' -> do
-        name0 <- rn name
-        name1 <- rn name'
-        return $ Ch.As name0 name1
+--       Ch.As name name' -> do
+--         name0 <- rn name
+--         name1 <- rn name'
+--         return $ Ch.As name0 name1
 
-      Ch.Plain name -> do
-        name' <- rn name
-        return $ Ch.Plain name'
+--       Ch.Plain name -> do
+--         name' <- rn name
+--         return $ Ch.Plain name'
 
 
 instance Renamable Ch.Expr where
