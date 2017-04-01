@@ -167,7 +167,7 @@ topDecls (d:ds) =
           uni t type' >> topDecls ds
 
     _ ->
-      ask
+      local id $ topDecls ds
 
 
 param :: [String] -> Infer T.Type -> Infer T.Type

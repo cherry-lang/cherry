@@ -12,8 +12,8 @@ import qualified Syntax           as Ch
 
 decl :: Parser Ch.Declaration
 decl = try func
-   <|> try P.typeAnnDecl
    <|> try infixSpec
+   <|> try P.typeAnnDecl
 
 
 func :: Parser Ch.Declaration

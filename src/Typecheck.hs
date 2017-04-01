@@ -14,7 +14,13 @@ typecheck interfaces m =
       unionEnvs $ map Ch._typeEnv interfaces
   in
     case infer env m of
-      Left err -> Left err
-      Right (m', constraints) -> case solve constraints of
-        Left err -> Left err
-        Right _  -> Right m'
+      Left err ->
+        Left err
+
+      Right (m', constraints) ->
+        case solve constraints of
+          Left err ->
+            Left err
+
+          Right _  ->
+            Right m'

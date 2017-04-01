@@ -24,5 +24,5 @@ main = getArgs >>= return . head >>= \fp -> do
         Left err ->
           fail $ show err
 
-        Right m' ->
+        Right m' -> do
           putStrLn $ prettyPrint $ codegen m'
