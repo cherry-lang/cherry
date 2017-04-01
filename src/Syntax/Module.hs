@@ -64,17 +64,56 @@ emptyModule = Module
   }
 
 
+filterEnv :: [String] -> Environment -> Environment
+filterEnv exports env =
+  env { vars = Map.filterWithKey (\k _ -> elem k exports) $ vars env }
+
+
+filterFixities :: [String] -> [Infix] -> [Infix]
+filterFixities exports fixs =
+  filter (\(Infix _ _ op) -> elem op exports) fixs
+
+
 moduleToInterface :: Module -> Interface
 moduleToInterface (Module { name, typeEnv, fixities, exports }) =
-  let
-    filterEnv env =
-      env { vars = Map.filterWithKey (\k _ -> elem k exports) $ vars env }
+  Interface
+    { _name = name
+    , _fixities = filterFixities exports fixities
+    , _typeEnv = filterEnv exports typeEnv
+    }
 
-    filterFixities fixs =
-      filter (\(Infix _ _ op) -> elem op exports) fixs
+
+importFromInterface :: Interface -> Module -> Interface
+importFromInterface inf m =
+  let
+    (Interface name infixes env) =
+      inf
+
+    imports' =
+      filter (\(Import _ name' _) -> name == name') $ imports m
+
+    importAssigns (Import _ _ assigns) =
+      map (\(Plain name') -> name') assigns
+
+    imports0 =
+      foldl (++) [] $ map importAssigns imports'
   in
     Interface
       { _name = name
-      , _fixities = filterFixities fixities
-      , _typeEnv = filterEnv typeEnv
+      , _fixities = filterFixities imports0 infixes
+      , _typeEnv  = filterEnv imports0 env
       }
+
+
+
+
+
+
+
+
+
+
+
+
+
+

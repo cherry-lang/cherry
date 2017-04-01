@@ -1,9 +1,7 @@
 module Test runs (main)
 
-
 from Prelude import ((+), (/), add, divide)
-from MyMod   import (greet)
-
+from MyMod   import (greet, greetNicely)
 
 
 console : { log : a -> String }
@@ -17,6 +15,6 @@ toString x = x
 ($) f x = f x
 
 
-
 main =
+    greetNicely "George"
     console.log $ toString (10 + 5 / 2)

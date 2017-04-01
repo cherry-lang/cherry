@@ -11,7 +11,7 @@ typecheck :: [Ch.Interface] -> Ch.Module -> Either Error Ch.Module
 typecheck interfaces m =
   let
     env =
-      unionEnvs $ map Ch._typeEnv interfaces
+      unionEnvs $ map (Ch._typeEnv . flip Ch.importFromInterface m) interfaces
   in
     case infer env m of
       Left err ->

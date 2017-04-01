@@ -23,7 +23,8 @@ module' interfaces = do
 
 
 integrate :: Ch.Module -> Ch.Interface -> Parser ()
-integrate _ interface = mapM_ addInfix $ Ch._fixities interface
+integrate m interface = mapM_ addInfix $ Ch._fixities interface'
+  where interface' = Ch.importFromInterface interface m
 
 
 header :: Parser Ch.Module
