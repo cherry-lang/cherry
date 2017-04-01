@@ -1,9 +1,12 @@
-module MyMod exports (greet)
+module MyMod exports (greet, ms)
+
+fromjs "./Prelude" import (add)
 
 from Sub/Mod import (ms)
 
-(+) : a -> a -> a
+add : a -> a -> a
+
 
 
 greet : String -> String
-greet name = (ms name) + name
+greet name = add (ms name) name

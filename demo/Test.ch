@@ -13,9 +13,17 @@ minus  : a -> a -> a
 divide : a -> a -> a
 length : a -> Int
 
+toString : a -> String
+toString x = x
+
+
 (+) : a -> a -> a 
 (+) x y = add x y
 
+(/) : a -> a -> a
+(/) x y = divide x y
+
+infixl 8 +
 
 main =
-  console.log (greet (ms False))
+  console.log (toString (10 + 5 / 2))

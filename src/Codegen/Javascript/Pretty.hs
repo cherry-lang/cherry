@@ -11,14 +11,23 @@ import qualified Codegen.Javascript.Syntax as Js
 
 data PrinterState
     = PrinterState
-    { doc :: Doc
-    , ind :: Int
+    { doc     :: Doc
+    , ind     :: Int
+    , exports :: Bool -- Should not be in the printer obviously
     }
     deriving (Show)
 
 
 newtype Printer a = Printer { runPrinter :: State PrinterState a }
     deriving (Functor, Applicative, Monad, MonadState PrinterState)
+
+
+ifNotExports :: Doc -> Printer ()
+ifNotExports doc = do
+  e <- gets exports
+  if e
+    then return ()
+    else appendN doc >> (modify $ \s -> s { exports = True })
 
 
 indent :: Printer ()
@@ -42,7 +51,7 @@ newline = appendN $ text ""
 
 
 emptyPrinterState :: PrinterState
-emptyPrinterState = PrinterState empty 0
+emptyPrinterState = PrinterState empty 0 False
 
 
 execPrinter :: Printer a -> Doc
@@ -76,7 +85,9 @@ func name params =
 export :: String -> Doc
 export name =
     empty <>
-    text "export" <+>
+    text "exports." <>
+    text name <+>
+    equals <+>
     text name <>
     semi
 
@@ -120,7 +131,8 @@ pStatement st = case st of
     Js.If cases -> do
         pIf cases
 
-    Js.Export name ->
+    Js.Export name -> do
+        ifNotExports $ text "Object.defineProperty(exports, \"__esModule\", { value: true });"
         appendN $ export name
 
     Js.Return expr -> do

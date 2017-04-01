@@ -21,6 +21,15 @@ traverseApp (Ch.App _ e1 e2) = (traverseApp e1) ++ [e2]
 traverseApp expr             = [expr]
 
 
+resolveImport :: Ch.Module -> Ch.Import -> Js.Statement
+resolveImport (Ch.Module { Ch.name }) (Ch.Import _ name' imports) =
+  Js.Import (swapExtension $ resolveImportPath name name') $ map transform imports
+
+
+swapExtension :: FilePath -> FilePath
+swapExtension fp = splitAt (length fp - 3) fp |> fst |> flip (++) ".js"
+
+
 class Transform a b where
   transform :: a -> b
 
@@ -28,14 +37,10 @@ class Transform a b where
 instance Transform Ch.Module Js.Module where
   transform m@(Ch.Module { Ch.imports, Ch.exports, Ch.runs, Ch.decls }) =
      Js.Module $
-       map (resolveImports m) imports
+       map (resolveImport m) imports
        ++ map transform decls
        ++ map (Js.Expr . transform) runs
-
-
-resolveImports :: Ch.Module -> Ch.Import -> Js.Statement
-resolveImports (Ch.Module { Ch.name }) (Ch.Import _ name' imports) =
-  Js.Import (resolveImportPath name name') $ map transform imports
+       ++ map Js.Export exports
 
 
 instance Transform Ch.Assign String where
@@ -54,7 +59,7 @@ instance Transform Ch.Declaration Js.Statement where
         in
           Js.Func name params statements
 
-      Ch.TypeAnn _ _ _ ->
+      _ ->
         Js.Skip
 
 

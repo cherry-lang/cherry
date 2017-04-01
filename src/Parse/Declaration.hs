@@ -3,11 +3,9 @@ module Parse.Declaration where
 import           Text.Megaparsec  (try, (<|>))
 import qualified Text.Megaparsec  as P
 
-import           Import.Common
-import           Parse.Expression (string)
 import qualified Parse.Expression as P
 import qualified Parse.Lexer      as L
-import           Parse.Parse
+import           Parse.Parse      (Parser, addInfix)
 import qualified Parse.Type       as P
 import qualified Syntax           as Ch
 
@@ -15,6 +13,7 @@ import qualified Syntax           as Ch
 decl :: Parser Ch.Declaration
 decl = try func
    <|> try P.typeAnnDecl
+   <|> try infixSpec
 
 
 func :: Parser Ch.Declaration
@@ -26,26 +25,24 @@ func = L.refIndent >> do
   exprs  <- P.some (L.indented *> P.expr <* L.scn)
   return $ Ch.Func pos (name, length params) params exprs
   where
-    infixName = L.parens L.infixOp
+    infixName = do
+      op <- L.parens L.infixOp
+      addInfix $ Ch.Infix Ch.L 9 op
+      return op
 
 
--- importjs :: Parser Ch.Declaration
--- importjs = do
---   pos <- L.pos
---   L.rWord "fromjs"
---   (Ch.String src) <- string
---   L.rWord "import"
---   imports <- L.parens $ L.ident `P.sepBy` L.comma
---   return $ Ch.ImportJs pos src $ map Ch.Plain imports
+infixSpec :: Parser Ch.Declaration
+infixSpec = do
+  assoc <- P.choice
+    [ L.rWord "infixl" >> return Ch.L
+    , L.rWord "infixr" >> return Ch.R
+    , L.rWord "infix"  >> return Ch.N
+    ]
 
+  prec <- L.integer >>= return . fromIntegral
+  op   <- L.infixOp
 
--- import' :: Parser Ch.Declaration
--- import' = do
---   pos <- L.pos
---   L.rWord "from"
---   mod' <- L.identWith "/"
---   L.rWord "import"
---   imports <- L.parens $ L.ident `P.sepBy` L.comma
---   let hej = resolveImportPath "Main" mod'
+  let infix' = Ch.Infix assoc prec op
 
---   return $ Ch.Import pos hej $ map Ch.Plain imports
+  addInfix infix'
+  return $ Ch.InfixSpec infix'
