@@ -1,10 +1,13 @@
 module Main where
 
+import qualified Data.Aeson                as Aeson
 import           System.Environment
+import           System.Exit
 
 import           Codegen.Javascript        (codegen)
 import           Codegen.Javascript.Pretty (prettyPrint)
 import           Dependency
+import           Error
 import           Parse
 import qualified Parse.Parse               as P
 import           Typecheck
@@ -16,8 +19,9 @@ main = getArgs >>= return . head >>= \fp -> do
   src        <- readFile fp
 
   case parse fp src interfaces P.emptyParserState of
-    Left err ->
-      fail err
+    Left err -> do
+      toFriendlyParseError err >>= putStrLn . show
+      exitFailure
 
     Right m ->
       case typecheck interfaces m of

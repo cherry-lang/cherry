@@ -14,11 +14,11 @@ toString x = x
 ($) : (a -> b) -> a -> b
 ($) f x = f x
 
+
 infixl 5 $
 
-main =
-    console.log
-        "Hello"
+class Hello
 
-    console.log
-        "Hello"
+main =
+  console.log
+    "Hello"

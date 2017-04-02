@@ -1,11 +1,14 @@
 module Parse where
 
 import           Control.Monad.State
-import           Text.Megaparsec      (parseErrorPretty, runParserT)
+import           Text.Megaparsec      (Token, ParseError, Dec, parseErrorPretty, runParserT)
 
 import qualified Parse.Module         as P
 import qualified Parse.Parse          as P
 import qualified Syntax               as Ch
+
+
+type ParseErr = ParseError (Token String) Dec
 
 
 parse'
@@ -13,11 +16,11 @@ parse'
   -> String
   -> P.Parser a
   -> P.ParserState
-  -> Either String a
+  -> Either ParseErr a
 parse' fp src p ps =
   case evalState (runParserT p fp src) ps of
     Left err ->
-      Left $ parseErrorPretty err
+      Left err
 
     Right m ->
       Right m
@@ -28,7 +31,7 @@ parse
   -> String
   -> [Ch.Interface]
   -> P.ParserState
-  -> Either String Ch.Module
+  -> Either ParseErr Ch.Module
 parse fp src interfaces ps =
   parse' fp src (P.module' interfaces) ps
 
@@ -36,6 +39,6 @@ parse fp src interfaces ps =
 parseHeader
   :: FilePath
   -> String
-  -> Either String Ch.Module
+  -> Either ParseErr Ch.Module
 parseHeader fp src =
   parse' fp src P.header P.emptyParserState

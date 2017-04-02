@@ -1,6 +1,6 @@
-{-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE TypeSynonymInstances       #-}
 
 module Typecheck.Solve where
 
@@ -9,6 +9,7 @@ import           Control.Monad.Identity
 import qualified Data.Map               as Map
 import qualified Data.Set               as Set
 
+import           Syntax.Position
 import qualified Type                   as T
 import           Typecheck.Constraint
 import           Typecheck.Environment
@@ -125,7 +126,7 @@ unifies t t' =
       unifyMany [t1, t2] [t3, t4]
 
     _ ->
-      throwError $ TypeMismatch t' t
+      throwError $ TypeMismatch emptyPos t' t
 
 
 bind :: T.Var -> T.Type -> Solve Subst

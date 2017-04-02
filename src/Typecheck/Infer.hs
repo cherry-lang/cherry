@@ -180,17 +180,17 @@ param (p:ps) m = fresh >>= \tv -> inEnv (p, T.Forall [] tv) $ do
 expr :: Ch.Expr -> Infer T.Type
 expr e =
   case e of
-    Ch.Var _ var -> do
+    Ch.Var pos var -> do
       mt <- lookupEnv var
       case mt of
         Just t  -> return t
-        Nothing -> throwError $ Err.UnboundVariable var
+        Nothing -> throwError $ Err.UnboundVariable pos var
 
-    Ch.Prop _ (var:ps) -> do
+    Ch.Prop pos (var:ps) -> do
       mt <- lookupEnv var
       case mt of
         Just t  -> record var ps t
-        Nothing -> throwError $ Err.UnboundVariable var
+        Nothing -> throwError $ Err.UnboundVariable pos var
 
     Ch.Lit _ lit' ->
       lit lit'
@@ -218,7 +218,7 @@ record var (p:ps) r =
         throwError $ Err.UnboundProperty var p
 
     _ ->
-      throwError $ Err.TypeMismatch (T.Record $ Map.singleton (show p) $ T.var "a") r
+      throwError $ Err.TypeMismatch Ch.emptyPos (T.Record $ Map.singleton (show p) $ T.var "a") r
 
 
 lit :: Ch.Lit -> Infer T.Type

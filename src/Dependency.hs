@@ -10,6 +10,7 @@ import qualified Parse as P
 import qualified Parse.Parse as P
 import qualified Typecheck as T
 import Utils
+import Error
 
 
 
@@ -21,7 +22,7 @@ parseInterface :: [Ch.Interface] -> FilePath -> IO Ch.Interface
 parseInterface interfaces fp = readFile fp >>= \src ->
   case P.parse fp src interfaces P.emptyParserState of
     Left err ->
-      fail err
+      toFriendlyParseError err >>= putStrLn . show >> fail ""
 
     Right m ->
       case T.typecheck interfaces m of
@@ -56,7 +57,7 @@ parseModuleHeader fp = do
   src <- readFile fp
   case P.parseHeader fp src of
     Left err ->
-      fail err
+      toFriendlyParseError err >>= putStrLn . show >> fail ""
 
     Right mod' ->
       return mod'

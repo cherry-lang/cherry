@@ -8,3 +8,12 @@ data Pos
   , srcCol  :: Int
   }
   deriving (Show)
+
+
+emptyPos :: Pos
+emptyPos =
+  Pos
+    { srcFile = ""
+    , srcLine = 0
+    , srcCol  = 0
+    }

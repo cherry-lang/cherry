@@ -1,6 +1,6 @@
 (setq cherry-keywords '("module" "runs" "exports" "fromjs" "from" "import"
                         "infix" "infixl" "infixr" "class" "extends" "with"
-                        "trait" "interface"))
+                        "trait" "interface" "mutable" "match" "const"))
 
 (setq cherry-constants '("True" "False"))
 
@@ -14,8 +14,9 @@
         ("\\<[A-Z][0-9A-Za-z_]*" . font-lock-type-face)
         ))
 
-(define-derived-mode cherry-mode prog-mode "Cherry"
+(define-derived-mode cherry-mode fundamental-mode "Cherry"
   (setq-default indent-tabs-mode nil)
+  (setq tab-width 2)
 
   (setq font-lock-defaults '((cherry-font-lock-keywords))))
 
