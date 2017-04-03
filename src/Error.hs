@@ -1,15 +1,18 @@
 {-# LANGUAGE DeriveGeneric #-}
 
-module Error (toFriendlyParseError, jsonErr) where
+module Error (toFriendlyParseError, toFriendlyTypeError, jsonErr) where
 
-import GHC.Generics
+import           GHC.Generics
 
-import Data.Aeson
-import qualified Data.Set as Set
+import           Data.Aeson
 import qualified Data.List.NonEmpty as Ne
+import qualified Data.Set           as Set
 import qualified Text.Megaparsec    as P
 
 import qualified Parse              as P
+import qualified Syntax.Position    as Syn
+import qualified Type               as T
+import qualified Typecheck.Error    as T
 
 
 data ErrorContext = ErrorContext
@@ -22,8 +25,23 @@ data ErrorContext = ErrorContext
 
 
 data Error
-  = TypeError { context :: ErrorContext, got :: String, expected :: String }
-  | ParseError { context :: ErrorContext, got :: String, expected :: String }
+  = UnboundError
+  { context :: ErrorContext
+  , got     :: String
+  }
+
+  | TypeMismatch
+  { context  :: ErrorContext
+  , got      :: String
+  , expected :: String
+  }
+
+  | ParseError
+  { context  :: ErrorContext
+  , got      :: String
+  , expected :: String
+  }
+
   deriving (Generic, Show)
 
 
@@ -35,8 +53,70 @@ instance ToJSON Error where
   toEncoding = genericToEncoding defaultOptions
 
 
+emptyContext :: ErrorContext
+emptyContext =
+  ErrorContext
+    { file = ""
+    , line = 0
+    , col  = 0
+    , srcLine = ""
+    }
+
+
+posToContext :: Syn.Pos -> IO ErrorContext
+posToContext (Syn.Pos fp ln col) =
+  readFile fp >>= \src ->
+    return $ ErrorContext
+      { file    = fp
+      , line    = ln
+      , col     = col
+      , srcLine = (lines src) !! (ln - 1)
+      }
+
+
+typeToString :: T.Type -> String
+typeToString t =
+  case t of
+    T.Var (T.TV x) ->
+      x
+
+    T.Con x ->
+      x
+
+    T.Arrow x x' ->
+      (typeToString x) ++ " -> " ++ (typeToString x')
+
+    T.Record _ ->
+      "{}"
+
+
 jsonErr :: Error -> String
 jsonErr = show . encode
+
+
+toFriendlyTypeError :: T.Error -> IO Error
+toFriendlyTypeError err =
+  case err of
+    T.TypeMismatch pos g e -> do
+      context <- posToContext pos
+      return $ TypeMismatch
+        { context  = context
+        , got      = typeToString g
+        , expected = typeToString e
+        }
+
+    T.UnboundVariable pos var -> do
+      context <- posToContext pos
+      return $ UnboundError
+        { context = context
+        , got     = var
+        }
+
+    _ ->
+      return $ UnboundError
+      { context = emptyContext
+      , got     = "Ops not sure about this."
+      }
 
 
 toFriendlyParseError :: P.ParseErr -> IO Error

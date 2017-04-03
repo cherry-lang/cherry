@@ -17,6 +17,34 @@ executable cherry
   hs-source-dirs:      src
   main-is:             Main.hs
   default-language:    Haskell2010
+  other-modules:       Codegen.Javascript
+                       Codegen.Javascript.Merge
+                       Codegen.Javascript.Pretty
+                       Codegen.Javascript.Rename
+                       Codegen.Javascript.Syntax
+                       Codegen.Javascript.Transform
+                       Dependency
+                       Error
+                       Parse
+                       Parse.Declaration
+                       Parse.Expression
+                       Parse.Lexer
+                       Parse.Module
+                       Parse.Parse
+                       Parse.Type
+                       Syntax
+                       Syntax.Declaration
+                       Syntax.Expression
+                       Syntax.Module
+                       Syntax.Position
+                       Type
+                       Typecheck
+                       Typecheck.Constraint
+                       Typecheck.Environment
+                       Typecheck.Error
+                       Typecheck.Infer
+                       Typecheck.Solve
+                       Utils
   build-depends:       base >= 4.7 && < 5,
                        megaparsec >= 5.2.0,
                        containers >= 0.5.7,

@@ -1,6 +1,7 @@
 module Typecheck.Constraint where
 
-import qualified Type as T
+import           Syntax.Position
+import qualified Type            as T
 
 
-type Constraint = (T.Type, T.Type)
+type Constraint = (Pos, T.Type, T.Type)

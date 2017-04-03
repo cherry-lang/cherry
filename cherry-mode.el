@@ -14,7 +14,7 @@
         ("\\<[A-Z][0-9A-Za-z_]*" . font-lock-type-face)
         ))
 
-(define-derived-mode cherry-mode fundamental-mode "Cherry"
+(define-derived-mode cherry-mode prog-mode "Cherry"
   (setq-default indent-tabs-mode nil)
   (setq tab-width 2)
 

@@ -17,8 +17,13 @@ toString x = x
 
 infixl 5 $
 
-class Hello
+
+addItTogether : Int -> Int
+addItTogether x = x + 10
+
 
 main =
+  console.log $ toString True
+
   console.log
-    "Hello"
+    "Hello2"

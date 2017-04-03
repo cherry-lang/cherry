@@ -25,8 +25,9 @@ main = getArgs >>= return . head >>= \fp -> do
 
     Right m ->
       case typecheck interfaces m of
-        Left err ->
-          fail $ show err
+        Left err -> do
+          toFriendlyTypeError err >>= putStrLn . show
+          exitFailure
 
         Right m' -> do
           putStrLn $ prettyPrint $ codegen m'

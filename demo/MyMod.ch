@@ -1,10 +1,7 @@
 module MyMod exports (greet, greetNicely, ms)
 
 from Sub/Mod import (ms)
-from Prelude import ((+))
-
-add : a -> a -> a
-
+from Prelude import ((+), add)
 
 
 greet : String -> String

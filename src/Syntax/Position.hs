@@ -7,7 +7,7 @@ data Pos
   , srcLine :: Int
   , srcCol  :: Int
   }
-  deriving (Show)
+  deriving (Show, Eq, Ord)
 
 
 emptyPos :: Pos

@@ -9,7 +9,7 @@ import           Control.Monad.Identity
 import qualified Data.Map               as Map
 import qualified Data.Set               as Set
 
-import           Syntax.Position
+import qualified Syntax.Position        as Ch
 import qualified Type                   as T
 import           Typecheck.Constraint
 import           Typecheck.Environment
@@ -49,9 +49,9 @@ instance Substitutable T.Scheme where
 
 
 instance Substitutable Constraint where
-  apply s (t1, t2) = (apply s t1, apply s t2)
+  apply s (p, t1, t2) = (p, apply s t1, apply s t2)
 
-  ftv (t1, t2) = ftv t1 `Set.union` ftv t2
+  ftv (_, t1, t2) = ftv t1 `Set.union` ftv t2
 
 
 instance Substitutable a => Substitutable [a] where
@@ -90,28 +90,28 @@ solver (sub, cs) =
     [] ->
       return sub
 
-    ((t1, t2):cs') -> do
-      sub' <- unifies t1 t2
+    ((pos, t1, t2):cs') -> do
+      sub' <- unifies pos t1 t2
       solver (sub' `compose` sub, apply sub' cs')
 
 
-unifyMany :: [T.Type] -> [T.Type] -> Solve Subst
-unifyMany ts ts' =
+unifyMany :: Ch.Pos -> [T.Type] -> [T.Type] -> Solve Subst
+unifyMany pos ts ts' =
   case (ts, ts') of
     ([], []) ->
       return emptySubst
 
     (h1:t1, h2:t2) -> do
-      sub1 <- unifies h1 h2
-      sub2 <- unifyMany (apply sub1 t1) (apply sub1 t2)
+      sub1 <- unifies pos h1 h2
+      sub2 <- unifyMany pos (apply sub1 t1) (apply sub1 t2)
       return (sub2 `compose` sub1)
 
     _ ->
       throwError $ UnificationMismatch ts ts'
 
 
-unifies :: T.Type -> T.Type -> Solve Subst
-unifies t t' =
+unifies :: Ch.Pos -> T.Type -> T.Type -> Solve Subst
+unifies pos t t' =
   case (t, t') of
     (t1, t2) | t1 == t2 ->
       return emptySubst
@@ -123,10 +123,10 @@ unifies t t' =
       var `bind` type'
 
     (T.Arrow t1 t2, T.Arrow t3 t4) ->
-      unifyMany [t1, t2] [t3, t4]
+      unifyMany pos [t1, t2] [t3, t4]
 
     _ ->
-      throwError $ TypeMismatch emptyPos t' t
+      throwError $ TypeMismatch pos t' t
 
 
 bind :: T.Var -> T.Type -> Solve Subst

@@ -39,8 +39,8 @@ emptyInfer = InferState 0
 -- UTILS
 
 
-uni :: T.Type -> T.Type -> Infer ()
-uni t1 t2 = tell [(t1, t2)]
+uni :: Ch.Pos -> T.Type -> T.Type -> Infer ()
+uni pos t1 t2 = tell [(pos, t1, t2)]
 
 
 letters :: [String]
@@ -148,7 +148,7 @@ topDecls (d:ds) =
     Ch.TypeAnn _ (name, _) type' -> do
       inEnv (name, T.Forall (Set.toList $ ftv type') type') $ topDecls ds
 
-    Ch.Func _ (name, _) params exprs -> do
+    Ch.Func pos (name, _) params exprs -> do
       let rest  = init exprs
       let last' = last exprs
 
@@ -164,7 +164,7 @@ topDecls (d:ds) =
           inEnv (name, generalize env type') $ topDecls ds
 
         Just t ->
-          uni t type' >> topDecls ds
+          uni pos t type' >> topDecls ds
 
     _ ->
       local id $ topDecls ds
@@ -195,11 +195,11 @@ expr e =
     Ch.Lit _ lit' ->
       lit lit'
 
-    Ch.App _ e1 e2 -> do
+    Ch.App pos e1 e2 -> do
       t1 <- expr e1
       t2 <- expr e2
       tv <- fresh
-      uni t1 (t2 `T.Arrow` tv)
+      uni pos t1 (t2 `T.Arrow` tv)
       return tv
 
 
