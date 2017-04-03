@@ -1,5 +1,6 @@
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE NamedFieldPuns        #-}
+{-# LANGUAGE TupleSections         #-}
 
 module Typecheck.Infer where
 
@@ -172,9 +173,10 @@ topDecls (d:ds) =
 
 param :: [String] -> Infer T.Type -> Infer T.Type
 param [] m     = m
-param (p:ps) m = fresh >>= \tv -> inEnv (p, T.Forall [] tv) $ do
-  t <- param ps m
-  return $ T.Arrow tv t
+param (p:ps) m =
+  fresh
+    >>= \tv -> inEnv (p, T.Forall [] tv) $ param ps m
+    >>= return . T.Arrow tv
 
 
 expr :: Ch.Expr -> Infer T.Type
@@ -189,7 +191,7 @@ expr e =
     Ch.Prop pos (var:ps) -> do
       mt <- lookupEnv var
       case mt of
-        Just t  -> record var ps t
+        Just t  -> record pos var ps t
         Nothing -> throwError $ Err.UnboundVariable pos var
 
     Ch.Lit _ lit' ->
@@ -202,14 +204,18 @@ expr e =
       uni pos t1 (t2 `T.Arrow` tv)
       return tv
 
+    Ch.Record pos props -> do
+      props' <- mapM (\(k, v) -> expr v >>= return . (k,)) $ Map.toList props
+      return $ T.Record $ Map.fromList props'
 
-record :: String -> [String] -> T.Type -> Infer T.Type
-record _ [] _       = fail "Can't access record without a prop."
-record var (p:ps) r =
+
+record :: Ch.Pos -> String -> [String] -> T.Type -> Infer T.Type
+record _ _ [] _       = fail "Can't access record without a prop."
+record pos var (p:ps) r =
   case r of
     T.Record props -> case Map.lookup p props of
-      Just re@T.Record{} ->
-        record var ps re
+      Just re@T.Record{} -> do
+        record pos var ps re
 
       Just t ->
         return t
@@ -217,8 +223,12 @@ record var (p:ps) r =
       Nothing ->
         throwError $ Err.UnboundProperty var p
 
+    T.Var _ -> do
+      uni pos r (T.Record $ Map.singleton (show p) $ T.var "a")
+      return r
+
     _ ->
-      throwError $ Err.TypeMismatch Ch.emptyPos (T.Record $ Map.singleton (show p) $ T.var "a") r
+      throwError $ Err.TypeMismatch pos r (T.Record $ Map.singleton (show p) $ T.var "a")
 
 
 lit :: Ch.Lit -> Infer T.Type

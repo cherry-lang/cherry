@@ -1,5 +1,7 @@
 module Codegen.Javascript.Syntax where
 
+import qualified Data.Map as Map
+
 
 type Name = String
 type Param = String
@@ -34,6 +36,7 @@ data Expr
   | App Expr [Expr]
   | Lambda [Param] [Statement]
   | Comp Comp Expr Expr
+  | Object (Map.Map String Expr)
   deriving (Show)
 
 

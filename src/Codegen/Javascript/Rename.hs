@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE NamedFieldPuns             #-}
+{-# LANGUAGE TupleSections              #-}
 {-# LANGUAGE TypeSynonymInstances       #-}
 
 module Codegen.Javascript.Rename where
@@ -222,6 +223,9 @@ instance Renamable Ch.Expr where
         mapM_ collect params
         collect expr'
 
+      Ch.Record _ props ->
+        mapM_ collect $ Map.elems props
+
       _ ->
         return ()
 
@@ -244,6 +248,10 @@ instance Renamable Ch.Expr where
         params' <- mapM rn params
         expr0   <- rn expr'
         return $ Ch.Lambda params' expr0
+
+      Ch.Record pos props -> do
+        props' <- mapM (\(k, v) -> rn v >>= return . (k,)) $ Map.toList props
+        return $ Ch.Record pos $ Map.fromList props'
 
       _ ->
         return expr

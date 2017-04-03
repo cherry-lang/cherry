@@ -1,6 +1,7 @@
 module Syntax.Expression where
 
-import Syntax.Position
+import qualified Data.Map        as Map
+import           Syntax.Position
 
 
 type Name = String
@@ -12,6 +13,7 @@ data Expr
   | Lit Pos Lit
   | App Pos Expr Expr
   | Lambda [Name] Expr
+  | Record Pos (Map.Map String Expr)
   deriving (Show)
 
 

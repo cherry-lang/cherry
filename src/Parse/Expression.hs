@@ -22,6 +22,7 @@ expr = try app
 
 term :: Parser Ch.Expr
 term = try $ L.parens expr
+   <|> try record
    <|> try lit
    <|> try prop
    <|> try var
@@ -77,6 +78,22 @@ app = P.lineFold L.scn $ \sc' -> do
   return $ foldl (\app arg -> Ch.App pos app arg) func args
 
 
+record :: Parser Ch.Expr
+record = P.lineFold L.scn $ \sc' -> do
+  pos <- L.pos
+  kv  <- L.braces $ (sc' *> pkv <* L.scn) `P.sepBy` L.comma
+  return $ Ch.Record pos $ Map.fromList kv
+  where
+    pkv = do
+      k <- L.ident
+      L.equals
+      v <- expr
+      return (k, v)
+
+
+-- LITERALS
+
+
 lit :: Parser Ch.Expr
 lit = Ch.Lit <$> L.pos <*>
      (try string
@@ -84,10 +101,6 @@ lit = Ch.Lit <$> L.pos <*>
   <|> try float
   <|> try int
   <|> try void')
-
-
-
--- LITERALS
 
 
 string :: Parser Ch.Lit

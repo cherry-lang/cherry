@@ -14,6 +14,7 @@ import qualified Type                   as T
 import           Typecheck.Constraint
 import           Typecheck.Environment
 import           Typecheck.Error
+import           Utils
 
 
 newtype Subst
@@ -31,14 +32,22 @@ class Substitutable a where
 
 instance Substitutable T.Type where
   apply _ (T.Con type')             = T.Con type'
-  apply _ type'@T.Record{}          = type' -- TODO: Change to proper implementation
   apply (Subst s) type'@(T.Var var) = Map.findWithDefault type' var s
   apply subst (t1 `T.Arrow` t2)     = apply subst t1 `T.Arrow` apply subst t2
+  apply (Subst s) (T.Record p)      = T.Record $ Map.map lookupTvars p
+    where
+      lookupTvars p' =
+        case p' of
+          T.Var var ->
+            Map.findWithDefault p' var s
+
+          _ ->
+            p'
 
   ftv T.Con{}         = Set.empty
-  ftv T.Record{}      = Set.empty -- TODO: Should change this to a proper implementation
   ftv (T.Var var)     = Set.singleton var
   ftv (T.Arrow t1 t2) = ftv t1 `Set.union` ftv t2
+  ftv (T.Record p)    = Map.elems p |> map ftv |> foldl Set.union Set.empty
 
 
 instance Substitutable T.Scheme where
@@ -124,6 +133,12 @@ unifies pos t t' =
 
     (T.Arrow t1 t2, T.Arrow t3 t4) ->
       unifyMany pos [t1, t2] [t3, t4]
+
+    (T.Record p, T.Record p') ->
+      Map.intersectionWith (,) p p'
+        |> Map.elems
+        |> foldl (\(r, l) (t1, t2) -> (r ++ [t1], l ++ [t2])) ([], [])
+        |> (\(ts1, ts2) -> unifyMany pos ts1 ts2)
 
     _ ->
       throwError $ TypeMismatch pos t' t

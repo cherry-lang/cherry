@@ -4,6 +4,8 @@
 
 module Codegen.Javascript.Transform where
 
+import qualified Data.Map as Map
+
 import qualified Codegen.Javascript.Syntax as Js
 import qualified Syntax                    as Ch
 import Utils
@@ -83,6 +85,9 @@ instance Transform Ch.Expr Js.Expr where
 
       Ch.Lambda params expr' ->
         Js.Lambda params [Js.Expr $ transform expr']
+
+      Ch.Record _ props ->
+        Js.Object $ Map.map transform props
 
 
 instance Transform Ch.Lit Js.Lit where

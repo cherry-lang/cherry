@@ -4,6 +4,7 @@ module Codegen.Javascript.Pretty where
 
 import           Control.Monad.State
 import           Data.List
+import qualified Data.Map as Map
 import           Text.PrettyPrint
 
 import qualified Codegen.Javascript.Syntax as Js
@@ -195,6 +196,15 @@ pExpr expr = case expr of
         pExpr e1
         append compareEq
         pExpr e2
+
+    Js.Object props -> do
+        append lbrace
+        indent
+        mapM_
+          (\(k, v) -> do appendN $ text k <> colon <> space; pExpr v; append comma)
+          (Map.toList props)
+        dedent
+        appendN rbrace
 
 
 pParensExpr :: Js.Expr -> Printer ()

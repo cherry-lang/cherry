@@ -18,12 +18,16 @@ toString x = x
 infixl 5 $
 
 
-addItTogether : Int -> Int
-addItTogether x = x + 10
+toRecord : String -> { str : String, gro : Int }
+toRecord x =
+  { str = x + "!"
+  , gro = 123
+  }
+
+
+fromRecord : { str : String } -> String
+fromRecord x = x.str
 
 
 main =
-  console.log $ toString True
-
-  console.log
-    "Hello2"
+  console.log (fromRecord (toRecord "Hello"))

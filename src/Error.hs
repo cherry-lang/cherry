@@ -5,7 +5,9 @@ module Error (toFriendlyParseError, toFriendlyTypeError, jsonErr) where
 import           GHC.Generics
 
 import           Data.Aeson
+import           Data.List
 import qualified Data.List.NonEmpty as Ne
+import qualified Data.Map           as Map
 import qualified Data.Set           as Set
 import qualified Text.Megaparsec    as P
 
@@ -13,6 +15,7 @@ import qualified Parse              as P
 import qualified Syntax.Position    as Syn
 import qualified Type               as T
 import qualified Typecheck.Error    as T
+import           Utils
 
 
 data ErrorContext = ErrorContext
@@ -86,8 +89,13 @@ typeToString t =
     T.Arrow x x' ->
       (typeToString x) ++ " -> " ++ (typeToString x')
 
-    T.Record _ ->
-      "{}"
+    T.Record props ->
+      props
+        |> Map.toList
+        |> map (\(k, v) -> k ++ " : " ++ (typeToString v))
+        |> intersperse ","
+        |> foldl (++) ""
+        |> \r -> "{ " ++ r ++ " }"
 
 
 jsonErr :: Error -> String
