@@ -17,6 +17,7 @@ import           Typecheck.Constraint
 import           Typecheck.Environment
 import qualified Typecheck.Error       as Err
 import           Typecheck.Solve
+import           Utils                 ((|>))
 
 
 data InferState
@@ -92,7 +93,9 @@ normalize (T.Forall _ body) = T.Forall (map snd ord) (normtype body)
     fv (T.Var var)     = [var]
     fv (T.Con _)       = []
     fv (T.Arrow t1 t2) = fv t1 ++ fv t2
+    fv (T.Record ts)   = Map.elems ts |> map fv |> concat
 
+    normtype (T.Record ts)   = T.Record $ Map.map normtype ts
     normtype (T.Arrow t1 t2) = T.Arrow (normtype t1) (normtype t2)
     normtype (T.Con type')   = T.Con type'
     normtype (T.Var var)     =
@@ -223,8 +226,8 @@ record pos var (p:ps) r =
       Nothing ->
         throwError $ Err.UnboundProperty var p
 
-    T.Var _ -> do
-      uni pos r (T.Record $ Map.singleton (show p) $ T.var "a")
+    T.Var (T.TV x) -> do
+      -- uni pos r (T.Record $ Map.singleton (show p) $ T.var "a")
       return r
 
     _ ->
