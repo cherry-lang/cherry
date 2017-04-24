@@ -133,7 +133,7 @@ runInfer env m =
 
 
 module' :: Ch.Module -> Infer Ch.Module
-module' m@(Ch.Module { Ch.decls }) = do
+module' m@Ch.Module { Ch.decls } = do
   env <- topDecls decls
   return $ m { Ch.typeEnv = env }
 
@@ -149,29 +149,41 @@ topDecls :: [Ch.Declaration] -> Infer Environment
 topDecls [] = ask
 topDecls (d:ds) =
   case d of
-    Ch.TypeAnn _ (name, _) type' -> do
+    Ch.TypeAnn _ (name, _) type' ->
       inEnv (name, T.Forall (Set.toList $ ftv type') type') $ topDecls ds
 
     Ch.Func pos (name, _) params exprs -> do
       let rest  = init exprs
       let last' = last exprs
 
-      env   <- ask
-      type' <- param params $ do
-        mapM_ expr rest
-        t <- expr last'
-        return t
-
       def <- lookupEnv name
+
       case def of
-        Nothing ->
+        Nothing -> do
+          env   <- ask
+          type' <- param params $ do
+            mapM_ expr rest
+            expr last'
           inEnv (name, generalize env type') $ topDecls ds
 
-        Just t ->
-          uni pos t type' >> topDecls ds
+        Just t -> do
+          type' <- func (T.arrowToList t) params $ do
+            mapM_ expr rest
+            expr last'
+
+          uni pos t type'
+          topDecls ds
 
     _ ->
       local id $ topDecls ds
+
+
+func :: [T.Type] -> [String] -> Infer T.Type -> Infer T.Type
+func _ [] m          = m
+func (t:ts) (p:ps) m =
+  inEnv (p, T.Forall [] t) $ func ts ps m
+    >>= return . T.Arrow t
+
 
 
 param :: [String] -> Infer T.Type -> Infer T.Type
@@ -213,22 +225,24 @@ expr e =
 
 
 record :: Ch.Pos -> String -> [String] -> T.Type -> Infer T.Type
-record _ _ [] _       = fail "Can't access record without a prop."
+record _ _ [] _         = fail "Can't access record without a prop."
 record pos var (p:ps) r =
   case r of
-    T.Record props -> case Map.lookup p props of
-      Just re@T.Record{} -> do
-        record pos var ps re
+    T.Record props ->
+      case Map.lookup p props of
+        Just re@T.Record{} ->
+          record pos var ps re
 
-      Just t ->
-        return t
+        Just t ->
+          return t
 
-      Nothing ->
-        throwError $ Err.UnboundProperty var p
+        Nothing ->
+          throwError $ Err.UnboundProperty pos var p
 
-    T.Var (T.TV x) -> do
-      -- uni pos r (T.Record $ Map.singleton (show p) $ T.var "a")
-      return r
+    T.Var _ -> do
+      tv <- fresh
+      uni pos r (T.Record $ Map.singleton (show p) tv)
+      return tv
 
     _ ->
       throwError $ Err.TypeMismatch pos r (T.Record $ Map.singleton (show p) $ T.var "a")

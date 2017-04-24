@@ -39,3 +39,16 @@ primaryTypes =
   , string
   , bool
   ]
+
+
+arrowToList :: Type -> [Type]
+arrowToList t =
+  case t of
+    Arrow t1 (arrow@Arrow{}) ->
+      t1 : (arrowToList arrow)
+
+    Arrow t1 t2 ->
+      [t1, t2]
+
+    _ ->
+      fail "not an arrow"

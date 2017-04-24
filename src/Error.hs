@@ -120,6 +120,13 @@ toFriendlyTypeError err =
         , got     = var
         }
 
+    T.UnboundProperty pos rec var -> do
+      context <- posToContext pos
+      return $ UnboundError
+        { context = context
+        , got     = rec ++ "." ++ var
+        }
+
     _ ->
       return $ UnboundError
       { context = emptyContext

@@ -25,7 +25,7 @@ toRecord x =
   }
 
 
-fromRecord : { str : String } -> String
+fromRecord : { str : String, gro : Int } -> String
 fromRecord x = x.str
 
 

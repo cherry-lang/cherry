@@ -10,5 +10,5 @@ data Error
   | UnificationMismatch [T.Type] [T.Type]
   | AmbiguousType T.Scheme
   | UnboundVariable Pos String
-  | UnboundProperty { record :: String, property :: String }
+  | UnboundProperty { pos :: Pos, record :: String, property :: String }
   deriving (Show)
