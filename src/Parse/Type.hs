@@ -45,7 +45,7 @@ typeAnnDecl = do
 typeAnn :: Parser (String, T.Type)
 typeAnn = do
   name <- P.choice [L.parens L.infixOp, L.ident]
-  L.colon
+  L.sym "::"
   ann  <- arrow
   return (name, ann)
 

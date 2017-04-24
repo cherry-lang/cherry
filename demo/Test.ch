@@ -4,28 +4,29 @@ from Prelude import ((+), (/), add, divide)
 from MyMod   import (greet)
 
 
-console : { log : a -> String }
+console :: { log :: a -> String }
 
 
-toString : a -> String
+toString :: a -> String
 toString x = x
 
 
-($) : (a -> b) -> a -> b
+($) :: (a -> b) -> a -> b
 ($) f x = f x
 
 
 infixl 5 $
 
 
-toRecord : String -> { str : String, gro : Int }
+toRecord :: String -> { str :: String, gro :: Int }
 toRecord x =
   { str = x + "!"
   , gro = 123
+  , test = True
   }
 
 
-fromRecord : { str : String, gro : Int } -> String
+fromRecord :: { str :: String, gro :: Int } -> String
 fromRecord x = x.str
 
 
