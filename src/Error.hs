@@ -97,8 +97,8 @@ typeToString t =
     T.Record props ->
       props
         |> Map.toList
-        |> map (\(k, v) -> k ++ " : " ++ (typeToString v))
-        |> intersperse ","
+        |> map (\(k, v) -> k ++ " :: " ++ (typeToString v))
+        |> intersperse ", "
         |> foldl (++) ""
         |> \r -> "{ " ++ r ++ " }"
 

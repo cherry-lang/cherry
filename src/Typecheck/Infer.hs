@@ -209,8 +209,8 @@ checkType pos t =
         Nothing ->
           throwError $ Err.UndefinedType pos con
 
-        Just{} ->
-          return con
+        Just t' ->
+          return t'
 
 
 func :: [T.Type] -> [String] -> Infer T.Type -> Infer T.Type
