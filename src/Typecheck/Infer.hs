@@ -149,7 +149,8 @@ topDecls :: [Ch.Declaration] -> Infer Environment
 topDecls [] = ask
 topDecls (d:ds) =
   case d of
-    Ch.TypeAnn _ (name, _) type' ->
+    Ch.TypeAnn pos (name, _) type' -> do
+      checkType pos type'
       inEnv (name, T.Forall (Set.toList $ ftv type') type') $ topDecls ds
 
     Ch.Func pos (name, _) params exprs -> do
@@ -176,6 +177,30 @@ topDecls (d:ds) =
 
     _ ->
       local id $ topDecls ds
+
+
+checkType :: Ch.Pos -> T.Type -> Infer ()
+checkType pos t =
+  case t of
+    T.Var{} ->
+      return ()
+
+    arr@T.Arrow{} -> do
+      mapM_ (checkType pos) $ T.arrowToList arr
+      return ()
+
+    T.Record rec -> do
+      mapM_ (checkType pos) $ Map.elems rec
+      return ()
+
+    con@T.Con{} -> do
+      env <- ask
+      case lookupType con env of
+        Nothing ->
+          throwError $ Err.UndefinedType pos con
+
+        Just{} ->
+          return ()
 
 
 func :: [T.Type] -> [String] -> Infer T.Type -> Infer T.Type

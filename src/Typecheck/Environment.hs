@@ -38,3 +38,9 @@ remove name env = env { vars = Map.delete name $ vars env }
 
 lookupVar :: String -> Environment -> Maybe T.Scheme
 lookupVar var env = Map.lookup var $ vars env
+
+lookupType :: T.Type -> Environment -> Maybe T.Type
+lookupType con env =
+  if Set.member con $ types env
+    then Just con
+    else Nothing

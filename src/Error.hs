@@ -33,6 +33,11 @@ data Error
   , got     :: String
   }
 
+  | UndefinedError
+  { context :: ErrorContext
+  , got     :: String
+  }
+
   | TypeMismatch
   { context  :: ErrorContext
   , got      :: String
@@ -127,10 +132,17 @@ toFriendlyTypeError err =
         , got     = rec ++ "." ++ var
         }
 
+    T.UndefinedType pos (T.Con t) -> do
+      context <- posToContext pos
+      return $ UndefinedError
+        { context = context
+        , got     = t
+        }
+
     _ ->
       return $ UnboundError
       { context = emptyContext
-      , got     = "Ops not sure about this."
+      , got     = "Ops not sure about this. " ++ (show err)
       }
 
 

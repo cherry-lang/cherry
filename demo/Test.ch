@@ -30,5 +30,8 @@ fromRecord :: { str :: String, gro :: Int } -> String
 fromRecord x = x.str
 
 
+hej :: String -> Greeting
+
+
 main =
   console.log (fromRecord (toRecord "Hello"))
