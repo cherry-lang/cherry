@@ -10,6 +10,7 @@ end
 " Keywords
 syn keyword cherryImport  module runs from fromjs import
 syn keyword cherryKeyword infix infixl infixr
+syn keyword cherryKeyword type alias
 
 " Types
 syn match cherryType     '^[a-zA-Z0-9]\+' nextgroup=cherryTypeSign
