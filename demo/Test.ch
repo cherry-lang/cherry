@@ -4,6 +4,9 @@ from Prelude import ((+), (/), add, divide)
 from MyMod   import (greet)
 
 
+type alias Record = { str :: String, gro :: Int }
+
+
 console :: { log :: a -> String }
 
 
@@ -18,7 +21,7 @@ toString x = x
 infixl 5 $
 
 
-toRecord :: String -> { str :: String, gro :: Int }
+toRecord :: String -> Record
 toRecord x =
   { str = x + "!"
   , gro = 123
@@ -28,9 +31,6 @@ toRecord x =
 
 fromRecord :: { str :: String, gro :: Int } -> String
 fromRecord x = x.str
-
-
-hej :: String -> Greeting
 
 
 main =

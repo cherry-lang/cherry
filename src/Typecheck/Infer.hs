@@ -57,9 +57,15 @@ fresh = do
   return $ T.var l
 
 
-inEnv :: (String, T.Scheme) -> Infer a -> Infer a
-inEnv (name, scheme) m = do
+varInEnv :: (String, T.Scheme) -> Infer a -> Infer a
+varInEnv (name, scheme) m = do
   let scope env = extend (name, scheme) (remove name env)
+  local scope m
+
+
+aliasInEnv :: (String, T.Type) -> Infer a -> Infer a
+aliasInEnv (name, t) m = do
+  let scope env = alias name t env
   local scope m
 
 
@@ -142,16 +148,20 @@ imports :: [Ch.Assign] -> Infer a -> Infer a
 imports [] m             = m
 imports (Ch.Plain h:t) m = do
   tv <- fresh
-  inEnv (h, T.Forall [] tv) (imports t m)
+  varInEnv (h, T.Forall [] tv) (imports t m)
 
 
 topDecls :: [Ch.Declaration] -> Infer Environment
 topDecls [] = ask
 topDecls (d:ds) =
   case d of
-    Ch.TypeAnn pos (name, _) type' -> do
+    Ch.TypeAlias pos name type' -> do
       checkType pos type'
-      inEnv (name, T.Forall (Set.toList $ ftv type') type') $ topDecls ds
+      aliasInEnv (name, type') $ topDecls ds
+
+    Ch.TypeAnn pos (name, _) type' -> do
+      t <- checkType pos type'
+      varInEnv (name, T.Forall (Set.toList $ ftv t) t) $ topDecls ds
 
     Ch.Func pos (name, _) params exprs -> do
       let rest  = init exprs
@@ -165,7 +175,7 @@ topDecls (d:ds) =
           type' <- param params $ do
             mapM_ expr rest
             expr last'
-          inEnv (name, generalize env type') $ topDecls ds
+          varInEnv (name, generalize env type') $ topDecls ds
 
         Just t -> do
           type' <- func (T.arrowToList t) params $ do
@@ -179,34 +189,34 @@ topDecls (d:ds) =
       local id $ topDecls ds
 
 
-checkType :: Ch.Pos -> T.Type -> Infer ()
+checkType :: Ch.Pos -> T.Type -> Infer T.Type
 checkType pos t =
   case t of
     T.Var{} ->
-      return ()
+      return t
 
     arr@T.Arrow{} -> do
-      mapM_ (checkType pos) $ T.arrowToList arr
-      return ()
+      ts <- mapM (checkType pos) $ T.arrowToList arr
+      return $ T.toArrow ts
 
-    T.Record rec -> do
-      mapM_ (checkType pos) $ Map.elems rec
-      return ()
+    T.Record rec ->
+      mapM (checkType pos) rec
+        >>= return . T.Record
 
     con@T.Con{} -> do
       env <- ask
-      case lookupType con env of
+      case resolveType con env of
         Nothing ->
           throwError $ Err.UndefinedType pos con
 
         Just{} ->
-          return ()
+          return con
 
 
 func :: [T.Type] -> [String] -> Infer T.Type -> Infer T.Type
 func _ [] m          = m
 func (t:ts) (p:ps) m =
-  inEnv (p, T.Forall [] t) $ func ts ps m
+  varInEnv (p, T.Forall [] t) $ func ts ps m
     >>= return . T.Arrow t
 
 
@@ -215,7 +225,7 @@ param :: [String] -> Infer T.Type -> Infer T.Type
 param [] m     = m
 param (p:ps) m =
   fresh
-    >>= \tv -> inEnv (p, T.Forall [] tv) $ param ps m
+    >>= \tv -> varInEnv (p, T.Forall [] tv) $ param ps m
     >>= return . T.Arrow tv
 
 

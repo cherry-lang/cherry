@@ -14,12 +14,6 @@ import qualified Type            as T
 -- UTILS
 
 
-toArrow :: [T.Type] -> T.Type
-toArrow []     = undefined
-toArrow (x:[]) = x
-toArrow (x:xs) = T.Arrow x (toArrow xs)
-
-
 toType :: String -> T.Type
 toType type'@(h:_) =
   if isLower h
@@ -33,6 +27,17 @@ depth _                         = 0
 
 
 -- PARSE
+
+
+typeAlias :: Parser Ch.Declaration
+typeAlias = do
+  pos <- L.pos
+  L.rWord "type"
+  L.rWord "alias"
+  (T.Con n) <- con
+  L.sym "="
+  t <- type'
+  return $ Ch.TypeAlias pos n t
 
 
 typeAnnDecl :: Parser Ch.Declaration
@@ -72,4 +77,4 @@ record = L.braces $ do
 
 
 arrow :: Parser T.Type
-arrow = toArrow <$> type' `P.sepBy` L.arrowr
+arrow = T.toArrow <$> type' `P.sepBy` L.arrowr

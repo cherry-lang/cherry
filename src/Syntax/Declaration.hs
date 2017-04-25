@@ -11,6 +11,7 @@ type FuncId = (String, Int)
 data Declaration
   = Func Pos FuncId [String] [Expr]
   | TypeAnn Pos FuncId T.Type
+  | TypeAlias Pos String T.Type
   | Const Pos Name Expr
   | InfixSpec Infix
   deriving (Show)

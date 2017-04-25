@@ -52,3 +52,9 @@ arrowToList t =
 
     _ ->
       fail "not an arrow"
+
+
+toArrow :: [Type] -> Type
+toArrow []     = undefined
+toArrow (x:[]) = x
+toArrow (x:xs) = Arrow x (toArrow xs)

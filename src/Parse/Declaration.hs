@@ -13,6 +13,7 @@ import qualified Syntax           as Ch
 decl :: Parser Ch.Declaration
 decl = try func
    <|> try infixSpec
+   <|> try P.typeAlias
    <|> try P.typeAnnDecl
 
 
