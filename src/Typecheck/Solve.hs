@@ -4,6 +4,7 @@
 
 module Typecheck.Solve where
 
+import           Debug.Trace
 import           Control.Monad.Except
 import           Control.Monad.Identity
 import qualified Data.Map               as Map
@@ -44,7 +45,7 @@ instance Substitutable T.Type where
           _ ->
             p'
 
-  ftv (T.Term _ vars) = foldl Set.union Set.empty $ Set.map ftv vars
+  ftv (T.Term _ vars) = foldl Set.union Set.empty $ Set.map ftv $ Set.fromList vars
   ftv (T.Var var)     = Set.singleton var
   ftv (T.Arrow t1 t2) = ftv t1 `Set.union` ftv t2
   ftv (T.Record p)    = Map.elems p |> map ftv |> foldl Set.union Set.empty
@@ -94,9 +95,7 @@ resolveTypeAlias t env =
         Just (T.Alias aVars t') ->
           let
             subst =
-              Subst $ Map.fromList $ zip
-                (Set.toList aVars)
-                (Set.toList vars)
+              Subst $ Map.fromList $ zip aVars vars
           in
             resolveTypeAlias (apply subst t') env
 

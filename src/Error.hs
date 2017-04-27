@@ -89,7 +89,7 @@ typeToString t =
       x
 
     T.Term x vars ->
-      concat $ x : Set.toList (Set.map typeToString vars)
+      concat $ x : map typeToString vars
 
     T.Arrow x x' ->
       typeToString x ++ " -> " ++ typeToString x'

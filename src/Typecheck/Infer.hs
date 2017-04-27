@@ -65,7 +65,7 @@ varInEnv (name, scheme) m = do
 
 aliasInEnv :: (String, T.Alias) -> Infer a -> Infer a
 aliasInEnv (name, a) m = do
-  let scope env = alias name a env
+  let scope  = alias name a
   local scope m
 
 
@@ -103,7 +103,7 @@ normalize (T.Forall _ body) = T.Forall (map snd ord) (normtype body)
 
     normtype (T.Record ts)   = T.Record $ Map.map normtype ts
     normtype (T.Arrow t1 t2) = T.Arrow (normtype t1) (normtype t2)
-    normtype (T.Term t vars) = T.Term t $ Set.map normtype vars
+    normtype (T.Term t vars) = T.Term t $ map normtype vars
     normtype (T.Var var)     =
       case Prelude.lookup var ord of
         Nothing ->
@@ -200,8 +200,7 @@ checkType pos t =
       return $ T.toArrow ts
 
     T.Record rec ->
-      mapM (checkType pos) rec
-        >>= return . T.Record
+      T.Record <$> mapM (checkType pos) rec
 
     con@T.Term{} -> do
       env <- ask

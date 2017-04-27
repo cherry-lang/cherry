@@ -5,7 +5,7 @@ from MyMod   import (greet)
 
 type alias Name = String
 
-type alias Record a = { str :: Name, gro :: a }
+type alias Record z b = { str :: z, gro :: b }
 
 
 console :: { log :: a -> String }
@@ -22,7 +22,7 @@ toString x = x
 infixl 5 $
 
 
-toRecord :: String -> Record Int
+toRecord :: String -> Record String Bool
 toRecord x =
   { str = x + "!"
   , gro = 123

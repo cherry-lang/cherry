@@ -19,7 +19,7 @@ toType :: String -> T.Type
 toType type'@(h:_) =
   if isLower h
      then T.var type'
-     else T.Term type' Set.empty
+     else T.Term type' []
 
 
 depth :: T.Type -> Int
@@ -38,7 +38,7 @@ typeAlias = do
   (T.Term n tvars) <- term
   L.sym "="
   t <- type'
-  return $ Ch.TypeAlias pos n $ T.Alias (Set.map (\(T.Var var) -> var) tvars) t
+  return $ Ch.TypeAlias pos n $ T.Alias (map (\(T.Var var) -> var) tvars) t
 
 
 typeAnnDecl :: Parser Ch.Declaration
@@ -67,11 +67,15 @@ tvar :: Parser T.Type
 tvar = L.leadingLowerCase >>= return . T.var
 
 
+cons :: Parser T.Type
+cons = L.leadingUpperCase >>= \t -> return $ T.Term t []
+
+
 term :: Parser T.Type
 term = do
   con    <- L.leadingUpperCase
-  params <- P.many type'
-  return $ T.Term con $ Set.fromList params
+  params <- P.many (try cons <|> tvar)
+  return $ T.Term con params
 
 
 record :: Parser T.Type
