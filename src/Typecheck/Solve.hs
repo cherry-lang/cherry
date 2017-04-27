@@ -86,13 +86,19 @@ emptySubst = mempty
 resolveTypeAlias :: T.Type -> Environment -> Maybe T.Type
 resolveTypeAlias t env =
   case t of
-    T.Term name _ ->
+    T.Term name vars ->
       case Map.lookup name (aliases env) of
         Nothing ->
           lookupType t env
 
-        Just (T.Alias _ t') ->
-          resolveTypeAlias t' env
+        Just (T.Alias aVars t') ->
+          let
+            subst =
+              Subst $ Map.fromList $ zip
+                (Set.toList aVars)
+                (Set.toList vars)
+          in
+            resolveTypeAlias (apply subst t') env
 
     _ ->
       lookupType t env

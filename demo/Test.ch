@@ -3,11 +3,9 @@ module Test runs (main)
 from Prelude import ((+), (/), add, divide)
 from MyMod   import (greet)
 
-
 type alias Name = String
 
 type alias Record a = { str :: Name, gro :: a }
-
 
 
 console :: { log :: a -> String }
@@ -24,7 +22,7 @@ toString x = x
 infixl 5 $
 
 
-toRecord :: String -> Record Bool
+toRecord :: String -> Record Int
 toRecord x =
   { str = x + "!"
   , gro = 123
