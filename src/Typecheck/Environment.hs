@@ -12,7 +12,7 @@ type TypeVar = Map.Map String T.Scheme
 data Environment
   = Environment
   { vars    :: TypeVar
-  , aliases :: Map.Map String T.Type
+  , aliases :: Map.Map String T.Alias
   , types   :: Set.Set T.Type
   }
   deriving (Show)
@@ -38,9 +38,9 @@ extend (name, scheme) env =
   env { vars = Map.insert name scheme $ vars env }
 
 
-alias :: String -> T.Type -> Environment -> Environment
-alias name t env =
-  env { aliases = Map.insert name t $ aliases env }
+alias :: String -> T.Alias -> Environment -> Environment
+alias name a env =
+    env { aliases = Map.insert name a $ aliases env }
 
 
 remove :: String -> Environment -> Environment
@@ -54,7 +54,7 @@ lookupVar var env = Map.lookup var $ vars env
 lookupType :: T.Type -> Environment -> Maybe T.Type
 lookupType t env =
   case t of
-    T.Con{} ->
+    T.Term{} ->
       if Set.member t $ types env
         then Just t
         else Nothing

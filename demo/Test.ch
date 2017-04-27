@@ -4,7 +4,7 @@ from Prelude import ((+), (/), add, divide)
 from MyMod   import (greet)
 
 
-type alias Record = { str :: String, gro :: Int }
+type alias Record a = { str :: String, gro :: a }
 
 
 console :: { log :: a -> String }

@@ -2,6 +2,7 @@ module Parse.Type where
 
 import           Data.Char
 import qualified Data.Map        as Map
+import qualified Data.Set        as Set
 import           Text.Megaparsec (try, (<|>))
 import qualified Text.Megaparsec as P
 
@@ -18,7 +19,7 @@ toType :: String -> T.Type
 toType type'@(h:_) =
   if isLower h
      then T.var type'
-     else T.Con type'
+     else T.Term type' Set.empty
 
 
 depth :: T.Type -> Int
@@ -34,10 +35,10 @@ typeAlias = do
   pos <- L.pos
   L.rWord "type"
   L.rWord "alias"
-  (T.Con n) <- con
+  (T.Term n tvars) <- term
   L.sym "="
   t <- type'
-  return $ Ch.TypeAlias pos n t
+  return $ Ch.TypeAlias pos n $ T.Alias (Set.map (\(T.Var var) -> var) tvars) t
 
 
 typeAnnDecl :: Parser Ch.Declaration
@@ -59,15 +60,18 @@ type' :: Parser T.Type
 type' = try record
     <|> try (L.parens arrow)
     <|> try tvar
-    <|> try con
+    <|> try term
 
 
 tvar :: Parser T.Type
-tvar = L.lexeme $ (:) <$> P.lowerChar <*> (P.many P.alphaNumChar) >>= return . T.var
+tvar = L.leadingLowerCase >>= return . T.var
 
 
-con :: Parser T.Type
-con = L.lexeme $ (:) <$> P.upperChar <*> (P.many P.alphaNumChar) >>= return . T.Con
+term :: Parser T.Type
+term = do
+  con    <- L.leadingUpperCase
+  params <- P.many type'
+  return $ T.Term con $ Set.fromList params
 
 
 record :: Parser T.Type

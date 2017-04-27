@@ -1,5 +1,6 @@
 module Type where
 
+import qualified Data.Set as Set
 import qualified Data.Map as Map
 
 
@@ -10,7 +11,7 @@ newtype Var
 
 data Type
   = Var Var
-  | Con String
+  | Term String (Set.Set Type)
   | Arrow Type Type
   | Record (Map.Map String Type)
   deriving (Show, Eq, Ord)
@@ -21,15 +22,20 @@ data Scheme
   deriving (Show, Eq, Ord)
 
 
+data Alias
+  = Alias (Set.Set Var) Type
+  deriving (Show)
+
+
 var :: String -> Type
 var = Var . TV
 
 
 int, float, string, bool :: Type
-int    = Con "Int"
-float  = Con "Float"
-string = Con "String"
-bool   = Con "Bool"
+int    = Term "Int" Set.empty
+float  = Term "Float" Set.empty
+string = Term "String" Set.empty
+bool   = Term "Bool" Set.empty
 
 
 primaryTypes :: [Type]

@@ -31,7 +31,7 @@ class Substitutable a where
 
 
 instance Substitutable T.Type where
-  apply _ (T.Con type')             = T.Con type'
+  apply _ (T.Term type' v)          = T.Term type' v
   apply (Subst s) type'@(T.Var var) = Map.findWithDefault type' var s
   apply subst (t1 `T.Arrow` t2)     = apply subst t1 `T.Arrow` apply subst t2
   apply (Subst s) (T.Record p)      = T.Record $ Map.map lookupTvars p
@@ -44,7 +44,7 @@ instance Substitutable T.Type where
           _ ->
             p'
 
-  ftv T.Con{}         = Set.empty
+  ftv (T.Term _ vars) = foldl Set.union Set.empty $ Set.map ftv vars
   ftv (T.Var var)     = Set.singleton var
   ftv (T.Arrow t1 t2) = ftv t1 `Set.union` ftv t2
   ftv (T.Record p)    = Map.elems p |> map ftv |> foldl Set.union Set.empty
@@ -86,12 +86,12 @@ emptySubst = mempty
 resolveTypeAlias :: T.Type -> Environment -> Maybe T.Type
 resolveTypeAlias t env =
   case t of
-    T.Con name ->
+    T.Term name _ ->
       case Map.lookup name (aliases env) of
         Nothing ->
           lookupType t env
 
-        Just t' ->
+        Just (T.Alias _ t') ->
           resolveTypeAlias t' env
 
     _ ->

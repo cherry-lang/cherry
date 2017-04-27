@@ -88,8 +88,8 @@ typeToString t =
     T.Var (T.TV x) ->
       x
 
-    T.Con x ->
-      x
+    T.Term x vars ->
+      foldl (++) "" (x:(Set.toList $ Set.map typeToString vars))
 
     T.Arrow x x' ->
       (typeToString x) ++ " -> " ++ (typeToString x')
@@ -132,7 +132,7 @@ toFriendlyTypeError err =
         , got     = rec ++ "." ++ var
         }
 
-    T.UndefinedType pos (T.Con t) -> do
+    T.UndefinedType pos (T.Term t _) -> do
       context <- posToContext pos
       return $ UndefinedError
         { context = context

@@ -53,6 +53,16 @@ rWord :: String -> Parser ()
 rWord w = P.string w *> P.notFollowedBy P.alphaNumChar *> sc
 
 
+leadingLowerCase :: Parser String
+leadingLowerCase =
+  lexeme $ (:) <$> P.lowerChar <*> (P.many P.alphaNumChar)
+
+
+leadingUpperCase :: Parser String
+leadingUpperCase =
+  lexeme $ (:) <$> P.upperChar <*> (P.many P.alphaNumChar)
+
+
 ident :: Parser String
 ident = identWith ['_']
 

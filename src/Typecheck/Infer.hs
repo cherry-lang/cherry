@@ -63,9 +63,9 @@ varInEnv (name, scheme) m = do
   local scope m
 
 
-aliasInEnv :: (String, T.Type) -> Infer a -> Infer a
-aliasInEnv (name, t) m = do
-  let scope env = alias name t env
+aliasInEnv :: (String, T.Alias) -> Infer a -> Infer a
+aliasInEnv (name, a) m = do
+  let scope env = alias name a env
   local scope m
 
 
@@ -97,13 +97,13 @@ normalize (T.Forall _ body) = T.Forall (map snd ord) (normtype body)
     ord = zip (nub $ fv body) (map T.TV letters)
 
     fv (T.Var var)     = [var]
-    fv (T.Con _)       = []
+    fv (T.Term _ vars) = []
     fv (T.Arrow t1 t2) = fv t1 ++ fv t2
     fv (T.Record ts)   = Map.elems ts |> map fv |> concat
 
     normtype (T.Record ts)   = T.Record $ Map.map normtype ts
     normtype (T.Arrow t1 t2) = T.Arrow (normtype t1) (normtype t2)
-    normtype (T.Con type')   = T.Con type'
+    normtype (T.Term t vars) = T.Term t $ Set.map normtype vars
     normtype (T.Var var)     =
       case Prelude.lookup var ord of
         Nothing ->
@@ -155,9 +155,9 @@ topDecls :: [Ch.Declaration] -> Infer Environment
 topDecls [] = ask
 topDecls (d:ds) =
   case d of
-    Ch.TypeAlias pos name type' -> do
+    Ch.TypeAlias pos name alias@(T.Alias _ type') -> do
       checkType pos type'
-      aliasInEnv (name, type') $ topDecls ds
+      aliasInEnv (name, alias) $ topDecls ds
 
     Ch.TypeAnn pos (name, _) type' -> do
       t <- checkType pos type'
@@ -203,7 +203,7 @@ checkType pos t =
       mapM (checkType pos) rec
         >>= return . T.Record
 
-    con@T.Con{} -> do
+    con@T.Term{} -> do
       env <- ask
       case resolveTypeAlias con env of
         Nothing ->
