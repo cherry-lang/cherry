@@ -205,7 +205,7 @@ checkType pos t =
 
     con@T.Con{} -> do
       env <- ask
-      case resolveType con env of
+      case resolveTypeAlias con env of
         Nothing ->
           throwError $ Err.UndefinedType pos con
 

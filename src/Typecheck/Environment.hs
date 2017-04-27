@@ -61,18 +61,3 @@ lookupType t env =
 
     _ ->
       Just t
-
-
-resolveType :: T.Type -> Environment -> Maybe T.Type
-resolveType t env =
-  case t of
-    T.Con name ->
-      case Map.lookup name (aliases env) of
-        Nothing ->
-          lookupType t env
-
-        Just t' ->
-          resolveType t' env
-
-    _ ->
-      lookupType t env

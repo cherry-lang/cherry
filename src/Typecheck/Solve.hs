@@ -80,7 +80,26 @@ emptySubst :: Subst
 emptySubst = mempty
 
 
+-- TYPE ALIASES
+
+
+resolveTypeAlias :: T.Type -> Environment -> Maybe T.Type
+resolveTypeAlias t env =
+  case t of
+    T.Con name ->
+      case Map.lookup name (aliases env) of
+        Nothing ->
+          lookupType t env
+
+        Just t' ->
+          resolveTypeAlias t' env
+
+    _ ->
+      lookupType t env
+
+
 -- SOLVE
+
 
 type Solve a = ExceptT Error Identity a
 
