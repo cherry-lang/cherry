@@ -31,7 +31,7 @@ test :: Int -> a -> { k :: Int, v :: a }
 ### Type alias
 
 ```cherry
-type alias KV = { k :: Int, v :: String }
+type alias KV a b = { k :: a, v :: b }
 ```
 
 ### Functions
