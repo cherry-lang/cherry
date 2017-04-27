@@ -11,8 +11,8 @@ newtype Var
 
 data Type
   = Var Var
-  | Term String (Set.Set Type)
   | Arrow Type Type
+  | Term String (Set.Set Type)
   | Record (Map.Map String Type)
   deriving (Show, Eq, Ord)
 

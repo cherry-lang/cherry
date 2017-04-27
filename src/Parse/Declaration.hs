@@ -11,10 +11,11 @@ import qualified Syntax           as Ch
 
 
 decl :: Parser Ch.Declaration
-decl = try func
-   <|> try infixSpec
-   <|> try P.typeAlias
+decl = try P.typeAlias
    <|> try P.typeAnnDecl
+   <|> try func
+   <|> try infixSpec
+
 
 
 func :: Parser Ch.Declaration

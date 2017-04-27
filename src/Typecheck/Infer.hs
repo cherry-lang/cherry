@@ -155,9 +155,9 @@ topDecls :: [Ch.Declaration] -> Infer Environment
 topDecls [] = ask
 topDecls (d:ds) =
   case d of
-    Ch.TypeAlias pos name alias@(T.Alias _ type') -> do
-      checkType pos type'
-      aliasInEnv (name, alias) $ topDecls ds
+    Ch.TypeAlias pos name (T.Alias vars type') -> do
+      t <- checkType pos type'
+      aliasInEnv (name, T.Alias vars t) $ topDecls ds
 
     Ch.TypeAnn pos (name, _) type' -> do
       t <- checkType pos type'
@@ -235,14 +235,20 @@ expr e =
     Ch.Var pos var -> do
       mt <- lookupEnv var
       case mt of
-        Just t  -> return t
-        Nothing -> throwError $ Err.UnboundVariable pos var
+        Just t  ->
+          return t
+
+        Nothing ->
+          throwError $ Err.UnboundVariable pos var
 
     Ch.Prop pos (var:ps) -> do
       mt <- lookupEnv var
       case mt of
-        Just t  -> record pos var ps t
-        Nothing -> throwError $ Err.UnboundVariable pos var
+        Just t  ->
+          record pos var ps t
+
+        Nothing ->
+          throwError $ Err.UnboundVariable pos var
 
     Ch.Lit _ lit' ->
       lit lit'

@@ -74,11 +74,11 @@ emptyContext =
 posToContext :: Syn.Pos -> IO ErrorContext
 posToContext (Syn.Pos fp ln col) =
   readFile fp >>= \src ->
-    return $ ErrorContext
+    return ErrorContext
       { file    = fp
       , line    = ln
       , col     = col
-      , srcLine = (lines src) !! (ln - 1)
+      , srcLine = lines src !! (ln - 1)
       }
 
 
@@ -89,17 +89,17 @@ typeToString t =
       x
 
     T.Term x vars ->
-      foldl (++) "" (x:(Set.toList $ Set.map typeToString vars))
+      concat $ x : Set.toList (Set.map typeToString vars)
 
     T.Arrow x x' ->
-      (typeToString x) ++ " -> " ++ (typeToString x')
+      typeToString x ++ " -> " ++ typeToString x'
 
     T.Record props ->
       props
         |> Map.toList
-        |> map (\(k, v) -> k ++ " :: " ++ (typeToString v))
+        |> map (\(k, v) -> k ++ " :: " ++ typeToString v)
         |> intersperse ", "
-        |> foldl (++) ""
+        |> concat
         |> \r -> "{ " ++ r ++ " }"
 
 
@@ -112,7 +112,7 @@ toFriendlyTypeError err =
   case err of
     T.TypeMismatch pos g e -> do
       context <- posToContext pos
-      return $ TypeMismatch
+      return TypeMismatch
         { context  = context
         , got      = typeToString g
         , expected = typeToString e
@@ -120,29 +120,29 @@ toFriendlyTypeError err =
 
     T.UnboundVariable pos var -> do
       context <- posToContext pos
-      return $ UnboundError
+      return UnboundError
         { context = context
         , got     = var
         }
 
     T.UnboundProperty pos rec var -> do
       context <- posToContext pos
-      return $ UnboundError
+      return UnboundError
         { context = context
         , got     = rec ++ "." ++ var
         }
 
     T.UndefinedType pos (T.Term t _) -> do
       context <- posToContext pos
-      return $ UndefinedError
+      return UndefinedError
         { context = context
         , got     = t
         }
 
     _ ->
-      return $ UnboundError
+      return UnboundError
       { context = emptyContext
-      , got     = "Ops not sure about this. " ++ (show err)
+      , got     = "Ops not sure about this. " ++ show err
       }
 
 
@@ -159,7 +159,7 @@ toFriendlyParseError err =
           { file = fp
           , line = line'
           , col  = fromIntegral $ P.unPos col'
-          , srcLine = (lines src) !! (line' - 1)
+          , srcLine = lines src !! (line' - 1)
           }
         , got      = show $ head $ Set.toList $ P.errorUnexpected err
         , expected = show $ head $ Set.toList $ P.errorExpected err
