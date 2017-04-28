@@ -22,11 +22,10 @@ toString x = x
 infixl 5 $
 
 
-toRecord :: String -> Record String Bool
+toRecord :: String -> Record String Int
 toRecord x =
   { str = x + "!"
   , gro = 123
-  , test = True
   }
 
 
@@ -35,4 +34,4 @@ fromRecord x = x.str
 
 
 main =
-  console.log (fromRecord (toRecord "Hello"))
+  console.log (fromRecord (toRecord "Test"))

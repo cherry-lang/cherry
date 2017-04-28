@@ -4,6 +4,7 @@ module Dependency (deps) where
 
 import Data.Tree
 import Control.Monad.State
+import System.Exit
 
 import qualified Syntax as Ch
 import qualified Parse as P
@@ -21,13 +22,15 @@ deps = buildDepTree >=> solveDeps
 parseInterface :: [Ch.Interface] -> FilePath -> IO Ch.Interface
 parseInterface interfaces fp = readFile fp >>= \src ->
   case P.parse fp src interfaces P.emptyParserState of
-    Left err ->
-      toFriendlyParseError err >>= putStrLn . show >> fail ""
+    Left err -> do
+      toFriendlyParseError err >>= putStrLn . jsonErr
+      exitFailure
 
     Right m ->
       case T.typecheck interfaces m of
-        Left err ->
-          fail $ show err
+        Left err -> do
+          toFriendlyTypeError err >>= putStrLn . jsonErr
+          exitFailure
 
         Right m' ->
           return $ Ch.moduleToInterface m'

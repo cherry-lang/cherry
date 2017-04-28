@@ -26,7 +26,7 @@ main = getArgs >>= return . head >>= \fp -> do
     Right m ->
       case typecheck interfaces m of
         Left err -> do
-          toFriendlyTypeError err >>= putStrLn . show
+          toFriendlyTypeError err >>= putStrLn . jsonErr
           exitFailure
 
         Right m' -> do
